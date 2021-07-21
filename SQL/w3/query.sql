@@ -54,5 +54,79 @@ SELECT ord_date AS "order date", salesman_id AS "salesman id", ord_no AS "order 
 
 SELECT DISTINCT salesman_id FROM orders;
 
+/* Ex. 9.  
+   Write a SQL statement to display names and city of salesman, who belongs to the city of Paris.   
+   Sample table: salesman
+*/
+
+SELECT name, city FROM salesman
+WHERE city = 'Paris';
+
+/* Ex. 10.  
+   Write a SQL statement to display all the information for those customers with a grade of 200.   
+   Sample table: customer
+*/
+
+SELECT * 
+FROM customer
+WHERE grade = 200;
+
+/* Ex. 11.  
+    Write a SQL query to display the order number followed by order date and the purchase amount for each order which will be delivered 
+	by the salesman who is holding the ID 5001.   
+	Sample table: orders
+*/
+
+SELECT ord_no, ord_date, purch_amt
+FROM orders
+WHERE salesman_id = 5001;
+
+/* Ex. 12.  
+    Write a SQL query to display the Nobel prizes for 1970.
+	Sample table: nobel_win
+*/
+
+SELECT *
+FROM nobel_win
+WHERE year = 1970;
+
+/* Ex. 13.  
+    Write a SQL query to know the winner of the 1971 prize for Literature.
+	Sample table: nobel_win
+*/
+
+SELECT winner
+FROM   nobel_win
+WHERE  year = 1971
+AND    subject = 'Literature';
+
+/* Ex. 14.  
+    Write a SQL query to display the year and subject that won 'Dennis Gabor' his prize.
+	Sample table: nobel_win
+*/
+
+SELECT year, subject
+FROM nobel_win
+WHERE winner = 'Dennis Gabor';
+
+/* Ex. 15.  
+    Write a SQL query to give the name of the 'Physics' winners since the year 1950.   
+	Sample table: nobel_win
+*/
+
+SELECT winner
+FROM   nobel_win
+WHERE  subject = 'Physics'
+AND    year >= 1950;
+
+/* Ex. 16.  
+    Write a SQL query to Show all the details (year, subject, winner, country ) of the Chemistry prize winners between the year 1965 to 1975 inclusive.
+	Sample table: nobel_win
+*/
+
+SELECT year, subject, winner, country
+FROM   nobel_win
+WHERE  year BETWEEN 1965 AND 1975
+AND    subject = 'Chemistry';
 
 
