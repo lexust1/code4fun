@@ -129,4 +129,68 @@ FROM   nobel_win
 WHERE  year BETWEEN 1965 AND 1975
 AND    subject = 'Chemistry';
 
+/* Ex. 17.  
+    Write a SQL query to show all details of the Prime Ministerial winners after 1972 of Menachem Begin and Yitzhak Rabin.  
+	Sample table: nobel_win
+*/
+
+SELECT * 
+FROM   nobel_win
+WHERE  year > 1972 
+AND    (winner = 'Menachem Begin' OR winner = 'Yitzhak Rabin');
+
+/* Ex. 18.  
+    Write a SQL query to show all the details of the winners with first name Louis.    
+	Sample table: nobel_win
+*/
+
+SELECT *
+FROM nobel_win
+WHERE winner LIKE 'Louis %';
+
+/* Ex. 19.  
+    Write a SQL query to show all the winners in Physics for 1970 together with the winner of Economics for 1971.   
+	Sample table: nobel_win
+*/
+
+SELECT winner
+FROM   nobel_win
+WHERE  (year = 1970 AND subject = 'Physics')
+OR     (year = 1971 AND subject = 'Economics');
+
+/* Ex. 20.  
+    Write a SQL query to show all the winners of nobel prize in the year 1970 except the subject Physiology and Economics.   
+	Sample table: nobel_win
+*/
+
+SELECT winner
+FROM   nobel_win
+WHERE  year = 1970 
+AND    subject <> 'Physiology'
+AND    subject <> 'Economics';
+
+SELECT winner
+FROM   nobel_win
+WHERE  year = 1970 
+AND    subject NOT IN ('Physiology', 'Economics');
+
+/* Ex. 21.  
+    Write a SQL query to show the winners of a 'Physiology' prize in an early year before 1971 together with winners of a 'Peace' prize 
+	in a later year on and after the 1974. 
+	Sample table: nobel_win
+*/
+
+SELECT winner
+FROM   nobel_win
+WHERE  (year < 1971 AND subject = 'Physiology')
+OR     (year > 1974 AND subject = 'Peace');
+
+SELECT winner
+FROM   nobel_win
+WHERE  (year < 1971 AND subject = 'Physiology')
+UNION  (SELECT winner 
+		FROM   nobel_win 
+		WHERE  (year > 1974 AND subject = 'Peace'));
+
+
 
