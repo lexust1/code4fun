@@ -192,5 +192,70 @@ UNION  (SELECT winner
 		FROM   nobel_win 
 		WHERE  (year > 1974 AND subject = 'Peace'));
 
+/* Ex. 22.  
+   Write a SQL query to find all details of the prize won by Johannes Georg Bednorz. 
+   Sample table: nobel_win
+*/
+
+SELECT *
+FROM   nobel_win
+WHERE  winner = 'Johannes Georg Bednorz';
+
+/* Ex. 23.  
+   Write a SQL query to find all the details of the nobel winners for the subject not started with the letter 'P' and 
+   arranged the list as the most recent comes first, then by name in order.    
+   Sample table: nobel_win
+*/
+
+SELECT   *
+FROM     nobel_win
+WHERE    subject NOT LIKE 'P%'
+ORDER BY year DESC, winner; 
+
+/* Ex. 24.  
+   Write a SQL query to find all the details of 1970 winners by the ordered to subject and winner name; 
+   but the list contain the subject Economics and Chemistry at last.    
+   Sample table: nobel_win
+*/
+
+-- 1
+SELECT   *
+FROM     nobel_win
+WHERE    year = 1970
+ORDER BY 
+		 CASE 
+			  WHEN subject IN('Chemistry', 'Economics') THEN 1
+			  ELSE 0
+		 END ASC,
+		 subject,
+		 winner;
+		 
+-- 2
+(SELECT  *
+FROM     nobel_win
+WHERE    year = 1970
+AND      subject NOT IN ('Chemistry', 'Economics')
+ORDER BY subject, winner)
+
+UNION ALL
+
+(SELECT   * 
+FROM      nobel_win
+WHERE     year = 1970
+AND       subject IN ('Chemistry', 'Economics')
+ORDER BY  subject ASC, winner);
+
+/* Ex. 25.  
+   Write a SQL query to find all the products with a price between Rs.200 and Rs.600.    
+   Sample table: item_mast
+*/
+
+SELECT pro_name 
+FROM item_mast
+WHERE pro_price BETWEEN 200 AND 600;
+
+
+
+
 
 
