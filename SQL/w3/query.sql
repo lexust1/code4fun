@@ -254,6 +254,77 @@ SELECT pro_name
 FROM item_mast
 WHERE pro_price BETWEEN 200 AND 600;
 
+/* Ex. 26.  
+   Write a SQL query to calculate the average price of all products of the manufacturer which code is 16.    
+   Sample table: item_mast
+*/
+
+SELECT ROUND(AVG(pro_price), 2) AS avg_price
+FROM   item_mast
+WHERE  pro_com = 16;
+
+/* Ex. 27.  
+   Write a SQL query to find the item name and price in Rs.    
+   Sample table: item_mast
+*/
+
+SELECT pro_name AS "Item name", pro_price AS "Price, Rs"
+FROM item_mast;
+
+/* Ex. 28.  
+   Write a SQL query to display the name and price of all the items with a price is equal or more than Rs.250, 
+   and the list contain the larger price first and then by name in ascending order.    
+   Sample table: item_mast
+*/
+
+SELECT   pro_name AS "Name", pro_price AS "Price"
+FROM     item_mast
+WHERE    pro_price >= 250
+ORDER BY pro_price DESC, pro_name; 
+
+/* Ex. 29.  
+   Write a SQL query to display the average price of the items for each company, showing only the company code.  
+   Sample table: item_mast
+*/
+
+SELECT   pro_com, ROUND(AVG(pro_price), 2) 
+FROM     item_mast
+GROUP BY pro_com;
+
+/* Ex. 30.  
+   Write a SQL query to find the name and price of the cheapest item(s).  
+   Sample table: item_mast
+*/
+
+SELECT pro_name, pro_price
+FROM   item_mast
+WHERE  pro_price = (SELECT MIN(pro_price) FROM item_mast);
+
+/* Ex. 31.  
+   Write a query in SQL to find the last name of all employees, without duplicates.   
+   Sample table: emp_details
+*/
+
+SELECT DISTINCT emp_lname 
+FROM emp_details;
+
+/* Ex. 32.  
+   Write a query in SQL to find the data of employees whose last name is 'Snares'.  
+   Sample table: emp_details
+*/
+
+SELECT *
+FROM emp_details 
+WHERE  emp_lname = 'Snares';
+
+/* Ex. 33.  
+Write a query in SQL to display all the data of employees that work in the department 57.   
+Sample table: emp_details
+*/
+
+SELECT * 
+FROM emp_details
+WHERE emp_dept = 57;
 
 
 
