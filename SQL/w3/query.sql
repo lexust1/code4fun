@@ -404,3 +404,90 @@ SELECT cust_name AS "Customer",
 	   grade AS "Grade"
   FROM customer
  WHERE NOT (city = 'New York' OR grade > 100);
+ 
+/* Ex. 6.  
+   Write a SQL statement to display 
+   either those orders which are not issued on date 2012-09-10 and issued by the salesman whose ID is 5005 and below 
+   or those orders which purchase amount is 1000.00 and below.   
+   Sample table : orders
+*/
+
+SELECT *
+  FROM orders
+ WHERE NOT ((ord_date = '2012-09-10'
+   AND salesman_id > 5005)
+   OR purch_amt > 1000);
+
+/* Ex. 7.  
+   Write a SQL statement to display salesman_id, name, city and commission 
+   who gets the commission within the range more than 0.10% and less than 0.12%.  
+   Sample table : salesman
+*/
+
+SELECT salesman_id AS "ID", 
+       name AS "Name", 
+	   city AS "City", 
+	   commission AS "Commission"
+  FROM salesman
+ WHERE commission > 0.1
+   AND commission < 0.12;
+   
+/* Ex. 8.  
+   Write a SQL query to display all orders where purchase amount less than 200 
+   or exclude those orders which order date is on or greater than 10th Feb,2012 
+   and customer id is below 3009. 
+   Sample table : orders
+*/   
+
+SELECT *
+ FROM orders
+WHERE purch_amt < 200
+   OR NOT (ord_date >= '2012-02-10' 
+  AND customer_id < 3009);
+
+/* Ex. 9.  
+   Write a SQL statement to exclude the rows which satisfy 
+   1) order dates are 2012-08-17 and purchase amount is below 1000 
+   2) customer id is greater than 3005 and purchase amount is below 1000.  
+   Sample table : orders
+*/   
+
+SELECT *
+  FROM orders
+ WHERE NOT ((ord_date = '2012-08-17' 
+   AND purch_amt < 1000)
+    OR (customer_id > 3005
+   AND purch_amt < 1000));
+
+/* Ex. 10.  
+   Write a SQL query to display order number, purchase amount, achieved, the unachieved percentage 
+   for those order which exceeds the 50% of the target value of 6000.   
+   Sample table: orders
+*/   
+
+SELECT ord_no AS "Order number",
+       purch_amt AS "Purchase amount",
+	   ROUND(purch_amt*100/6000, 2) AS "Achieved percentage",
+	   100 - ROUND(purch_amt*100/6000, 2) AS "Unachieved percentage"
+  FROM orders
+ WHERE purch_amt*100/6000 > 50;
+
+/* Ex. 11.  
+   Write a query in SQL to find the data of employees whose last name is Dosni or Mardy.    
+   Sample table : emp_details
+*/   
+
+SELECT * 
+FROM emp_details
+LIMIT 20;
+-- 1
+SELECT *
+  FROM emp_details
+ WHERE emp_lname = 'Dosni'
+    OR emp_lname = 'Mardy';
+	
+-- 2
+SELECT *
+  FROM emp_details
+ WHERE emp_lname IN ('Dosni', 'Mardy');
+
