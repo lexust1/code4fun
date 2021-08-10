@@ -477,9 +477,6 @@ SELECT ord_no AS "Order number",
    Sample table : emp_details
 */   
 
-SELECT * 
-FROM emp_details
-LIMIT 20;
 -- 1
 SELECT *
   FROM emp_details
@@ -490,4 +487,106 @@ SELECT *
 SELECT *
   FROM emp_details
  WHERE emp_lname IN ('Dosni', 'Mardy');
+
+/* Ex. 12.  
+   Write a query in SQL to display all the data of employees that work in department 47 or department 63. 
+   Sample table : emp_details
+*/   
+
+-- 1
+SELECT *
+  FROM emp_details
+ WHERE emp_dept = 47
+    OR emp_dept = 63;
+	
+-- 2 
+SELECT *
+  FROM emp_details
+ WHERE emp_dept IN (47, 63);
+ 
+/* PART 3. Wildcard and Special operators. */
+
+/* Ex. 1.  
+   Write a SQL statement to find those salesmen with all information who come from the city either Paris or Rome.   
+   Sample table: salesman
+*/ 
+
+-- 1
+SELECT *
+  FROM salesman
+ WHERE city = 'Paris'
+    OR city = 'Rome';
+
+-- 2
+SELECT *
+  FROM salesman
+ WHERE city IN ('Paris', 'Rome');
+
+/* Ex. 2.  
+   Write a query to filter those salesmen with all information who comes from any of the cities Paris and Rome.  
+   Sample table: salesman
+*/ 
+
+-- The same (Ex. 1)
+
+/* Ex. 3.  
+   Write a query to produce a list of salesman_id, name, city and commission of each salesman who live in cities other than Paris and Rome.   
+   Sample table: salesman
+*/ 
+
+-- 1
+SELECT *
+  FROM salesman
+ WHERE NOT (city = 'Paris' 
+    OR city = 'Rome');
+	
+-- 2
+SELECT *
+  FROM salesman
+ WHERE NOT city IN ('Paris', 'Rome');
+
+-- 3 
+SELECT *
+  FROM salesman
+ WHERE city NOT IN ('Paris', 'Rome');
+
+/* Ex. 4.  
+   Write a query to sort out those customers with all information whose ID value is within any of 3007, 3008 and 3009.   
+   Sample table: customer
+*/ 
+
+-- 1
+SELECT *
+  FROM customer
+ WHERE customer_id IN (3007, 3008, 3009); 
+
+-- 2
+SELECT *
+  FROM customer
+ WHERE customer_id BETWEEN 3007 AND 3009;
+
+-- 3
+SELECT *
+  FROM customer
+ WHERE customer_id <= 3009 
+   AND customer_id >= 3007;
+
+/* Ex. 5.  
+   Write a SQL statement to find those salesmen with all information who gets the commission within a range of 0.12 and 0.14.    
+   Sample table: salesman
+*/ 
+
+-- 1
+SELECT *
+  FROM salesman
+ WHERE commission BETWEEN 0.12 AND 0.14;
+
+-- 2
+SELECT *
+  FROM salesman
+ WHERE commission >= 0.12 
+   AND commission <= 0.14;
+
+
+
 
