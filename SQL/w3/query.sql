@@ -587,6 +587,78 @@ SELECT *
  WHERE commission >= 0.12 
    AND commission <= 0.14;
 
+/* Ex. 6.  
+   Write a query to filter all those orders with all information which purchase amount value is within the range 500 and 4000
+   except those orders of purchase amount value 948.50 and 1983.43.   
+   Sample table: orders
+*/ 
+
+-- 1
+SELECT *
+  FROM orders
+ WHERE purch_amt BETWEEN 500 AND 4000
+   AND purch_amt <> 948.50
+   AND purch_amt <> 1983.43;
+   
+-- 2 
+SELECT *
+  FROM orders
+ WHERE purch_amt BETWEEN 500 AND 4000
+   AND purch_amt NOT IN (948.50, 1983.43);
+
+-- 3
+SELECT *
+  FROM orders
+ WHERE purch_amt BETWEEN 500 AND 4000
+EXCEPT
+SELECT *
+  FROM orders
+ WHERE purch_amt IN (948.50, 1983.43);
+
+/* Ex. 7.  
+   Write a SQL statement to find those salesmen with all other information and name started with any letter within 'A' and 'L' (not inclusive).   
+   Sample table: salesman
+*/ 
+
+-- 1
+SELECT *
+  FROM salesman
+ WHERE name BETWEEN 'A' AND 'K';
+
+-- 2
+SELECT *
+  FROM salesman
+ WHERE name >= 'A%'
+   AND name < 'L%';
+
+-- 3
+SELECT *
+  FROM salesman
+ WHERE name SIMILAR TO '[A-K]%';
+
+/* Ex. 8.  
+   Write a SQL statement to find those salesmen with all other information and name started with other than any latter within 'A' and 'L' (not inclusive).    
+   Sample table: salesman
+*/ 
+
+-- 1
+SELECT *
+FROM salesman
+WHERE name BETWEEN 'M' AND 'Z';
+
+-- 2
+SELECT *
+  FROM salesman
+ WHERE name >= 'M%';
+
+-- 3
+SELECT *
+  FROM salesman
+ WHERE name SIMILAR TO '[M-Z]%';
+
+
+
+
 
 
 
