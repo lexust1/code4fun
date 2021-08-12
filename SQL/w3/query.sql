@@ -655,6 +655,78 @@ SELECT *
 SELECT *
   FROM salesman
  WHERE name SIMILAR TO '[M-Z]%';
+ 
+/* Ex. 9.  
+   Write a SQL statement to find that customer with all information whose name begin with the letter 'B'.   
+   Sample table: customer
+*/ 
+
+-- 1
+SELECT *
+  FROM customer
+ WHERE cust_name LIKE 'B%';
+
+-- 2
+SELECT *
+  FROM customer
+ WHERE cust_name SIMILAR TO 'B%';
+ 
+-- 3
+SELECT *
+  FROM customer
+ WHERE LEFT(cust_name, 1) = 'B';
+
+/* Ex. 10.  
+   Write a SQL statement to find all those customers with all information whose names are ending with the letter 'n'.   
+   Sample table: customer
+*/ 
+
+-- 1
+SELECT *
+  FROM customer
+ WHERE RIGHT(cust_name, 1) = 'n';
+
+-- 2
+SELECT *
+  FROM customer
+ WHERE cust_name LIKE '%n';
+
+-- 3
+SELECT *
+  FROM customer
+ WHERE cust_name SIMILAR TO '%n';
+
+/* Ex. 11.  
+   Write a SQL statement to find those salesmen with all information whose name containing 
+   the 1st character is 'N' and the 4th character is 'l' and rests may be any character.  
+   Sample table : salesman
+*/ 
+
+-- 1
+SELECT *
+FROM salesman
+WHERE name LIKE 'N__l%';
+
+-- 2
+SELECT *
+FROM salesman
+WHERE name SIMILAR TO 'N__l%';
+
+/* Ex. 12.  
+   Write a SQL statement to find those rows from the table testtable which contain the escape character underscore ( _ ) in its column 'col1'.  
+   Sample table: testtable
+*/ 
+
+-- 1
+SELECT *
+FROM testtable
+WHERE col1 SIMILAR TO '%[_]%';
+
+-- 2
+SELECT *
+FROM testtable
+WHERE col1 LIKE '%/_%' ESCAPE '/';
+
 
 
 
