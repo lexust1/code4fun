@@ -635,6 +635,22 @@ SELECT *
 SELECT *
   FROM salesman
  WHERE name SIMILAR TO '[A-K]%';
+ 
+-- I. The traditional SQL LIKE operator (the fastest, work everywhere)
+
+-- Classical LIKE operator does not have enough wildcards to execute in one expression.  
+
+-- II. The SIMILAR TO operator (oportunities and speed between LIKE and regular expressiones, work in the most cases)
+
+SELECT *
+  FROM salesman
+ WHERE name SIMILAR TO '[A-K]%';
+
+-- III. POSIX-style regular expressiones (more flexible, slower, nuancies in work with different SQL)
+
+SELECT *
+  FROM salesman
+ WHERE name ~ '^[A-K]'; 
 
 /* Ex. 8.  
    Write a SQL statement to find those salesmen with all other information and name started with other than any latter within 'A' and 'L' (not inclusive).    
@@ -656,22 +672,41 @@ SELECT *
   FROM salesman
  WHERE name SIMILAR TO '[M-Z]%';
  
+-- I. The traditional SQL LIKE operator (the fastest, work everywhere)
+
+-- Classical LIKE operator does not have enough wildcards to execute in one expression.  
+
+-- II. The SIMILAR TO operator (oportunities and speed between LIKE and regular expressiones, work in the most cases)
+SELECT *
+  FROM salesman
+ WHERE name SIMILAR TO '[M-Z]%';
+
+-- III. POSIX-style regular expressiones (more flexible, slower, nuancies in work with different SQL)
+SELECT *
+  FROM salesman
+ WHERE name ~ '^[M-Z]';
+
 /* Ex. 9.  
    Write a SQL statement to find that customer with all information whose name begin with the letter 'B'.   
    Sample table: customer
 */ 
 
--- 1
+-- 1 The traditional SQL LIKE operator
 SELECT *
   FROM customer
  WHERE cust_name LIKE 'B%';
 
--- 2
+-- 2 The SIMILAR TO operator 
 SELECT *
   FROM customer
  WHERE cust_name SIMILAR TO 'B%';
+
+-- 3 POSIX-style regular expressiones 
+SELECT *
+FROM customer
+WHERE cust_name ~ '^B';
  
--- 3
+-- 4
 SELECT *
   FROM customer
  WHERE LEFT(cust_name, 1) = 'B';
@@ -686,15 +721,20 @@ SELECT *
   FROM customer
  WHERE RIGHT(cust_name, 1) = 'n';
 
--- 2
+-- 2 LIKE 
 SELECT *
   FROM customer
  WHERE cust_name LIKE '%n';
 
--- 3
+-- 3 SIMILAR TO 
 SELECT *
   FROM customer
  WHERE cust_name SIMILAR TO '%n';
+ 
+-- 4 RegEx
+SELECT *
+FROM customer
+WHERE cust_name ~ 'n$';
 
 /* Ex. 11.  
    Write a SQL statement to find those salesmen with all information whose name containing 
@@ -702,35 +742,133 @@ SELECT *
    Sample table : salesman
 */ 
 
--- 1
+-- 1 LIKE
 SELECT *
-FROM salesman
-WHERE name LIKE 'N__l%';
+  FROM salesman
+ WHERE name LIKE 'N__l%';
 
--- 2
+-- 2 SIMILAR TO
 SELECT *
-FROM salesman
-WHERE name SIMILAR TO 'N__l%';
+  FROM salesman
+ WHERE name SIMILAR TO 'N__l%';
 
+-- 3 RegEx
+SELECT *
+  FROM salesman
+ WHERE name ~ '^N.{2}l';
+
+SELECT *
+  FROM salesman
+ WHERE name ~ '^N..l';
+ 
 /* Ex. 12.  
    Write a SQL statement to find those rows from the table testtable which contain the escape character underscore ( _ ) in its column 'col1'.  
    Sample table: testtable
 */ 
 
--- 1
+-- 1 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 SIMILAR TO '%[_]%';
+
+-- 2 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 LIKE '%/_%' ESCAPE '/';
+ 
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 ~ '_';
+ 
+/* Ex. 13.  
+   Write a SQL statement to find those rows from the table testtable which does not contain the character underscore ( _ ) in its column 'col1'.  
+   Sample table: testtable
+*/ 
+
+-- 1 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 NOT SIMILAR TO '%[_]%';
+
+-- 2 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 NOT LIKE '%/_%' ESCAPE '/';
+
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 !~ '_'; 
+
+/* Ex. 14.  
+   Write a SQL statement to find those rows from the table testtable which contain the escape character ( / ) in its column 'col1'.   
+   Sample table: testtable
+*/ 
+
+SELECT * 
+  FROM testtable
+ LIMIT 20;
+
+-- 1 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 LIKE '%/%';
+
+-- 2 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 SIMILAR TO '%/%';
+
+-- 3 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 SIMILAR TO '%[/]%';
+ 
+ -- 4 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 ~ '/';
+ 
+/* Ex. 15.  
+   Write a SQL statement to find those rows from the table testtable which does not contain the escape character ( / ) in its column 'col1'.  
+   Sample table: testtable
+*/ 
+
+-- 1 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 NOT LIKE '%/%';
+
+-- 2 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 NOT SIMILAR TO '%/%';
+ 
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 !~ '/';
+
+/* Ex. 16.  
+   Write a SQL statement to find those rows from the table testtable which contain the string ( _/ ) in its column 'col1'.   
+   Sample table: testtable
+*/ 
+
+-- 1 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 SIMILAR TO '%#_/%' ESCAPE '#';
+
+-- 2 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 LIKE '%#_/%' ESCAPE '#';
+
+-- 3 RegEx
 SELECT *
 FROM testtable
-WHERE col1 SIMILAR TO '%[_]%';
-
--- 2
-SELECT *
-FROM testtable
-WHERE col1 LIKE '%/_%' ESCAPE '/';
-
-
-
-
-
+WHERE col1 ~ '_/'; 
 
 
 
