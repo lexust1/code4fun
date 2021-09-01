@@ -867,8 +867,77 @@ SELECT *
 
 -- 3 RegEx
 SELECT *
+  FROM testtable
+ WHERE col1 ~ '_/'; 
+
+/* Ex. 17.  
+   From the following table, write a SQL query to find those rows where col1 does not contain the string ( _/ ). Return col1.  
+   Sample table: testtable
+*/ 
+
+-- 1 LIKE
+SELECT *
+  FROM testtable
+ WHERE col1 NOT LIKE '%#_/%' ESCAPE '#';
+
+-- 2 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 NOT SIMILAR TO '%#_/%' ESCAPE '#';
+
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 !~ '_/';
+
+/* Ex. 18.  
+   From the following table, write a SQL query to find those rows where col1 contains the character percent ( % ). Return col1.   
+   Sample table: testtable
+*/ 
+
+SELECT *
 FROM testtable
-WHERE col1 ~ '_/'; 
+LIMIT 20;
+
+-- 1 LIKE TO
+SELECT *
+  FROM testtable
+ WHERE col1 LIKE '%#%%' ESCAPE '#';
+
+-- 2 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 SIMILAR TO '%#%%' ESCAPE '#';
+
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 ~ '%';
+
+/* Ex. 19.  
+   From the following table, write a SQL query to find those rows where col1 does not contain the character percent ( % ). Return col1.  
+   Sample table: testtable
+*/ 
+
+-- 1 LIKE 
+SELECT * 
+  FROM testtable
+  WHERE col1 NOT LIKE '%#%%' ESCAPE '#';
+
+-- 2 SIMILAR TO
+SELECT *
+  FROM testtable
+ WHERE col1 NOT SIMILAR TO '%#%%' ESCAPE '#';
+
+-- 3 RegEx
+SELECT *
+  FROM testtable
+ WHERE col1 !~ '%';
+
+
+
+
+
 
 
 
