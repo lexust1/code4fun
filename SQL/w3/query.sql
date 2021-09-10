@@ -934,6 +934,50 @@ SELECT *
   FROM testtable
  WHERE col1 !~ '%';
 
+/* Ex. 20.  
+   From the following table, write a SQL query to find all those customers who does not have any grade. 
+   Return customer_id, cust_name, city, grade, salesman_id.
+   Sample table: customer
+*/ 
+
+SELECT *
+  FROM customer
+ WHERE grade IS NULL;
+
+/* Ex. 21.  
+   From the following table, write a SQL query to find all those customers whose grade value exists. 
+   Return customer_id, cust_name, city, grade, salesman_id.   
+   Sample table: customer
+*/ 
+
+SELECT *
+  FROM customer
+ WHERE grade IS NOT NULL;
+
+/* Ex. 22.  
+   From the following table, write a SQL query to find the employees whose last name begins with the character 'D'. 
+   Return emp_idno, emp_fname, emp_lname and emp_dept. 
+   Sample table: emp_details
+*/ 
+
+SELECT *
+FROM emp_details
+LIMIT 20;
+
+-- 1 LIKE
+SELECT *
+  FROM emp_details
+ WHERE emp_lname LIKE 'D%';
+
+-- 2 SIMILAR TO
+SELECT *
+FROM emp_details
+WHERE emp_lname SIMILAR TO 'D%';
+
+-- 3 REGEX
+SELECT *
+FROM emp_details
+WHERE emp_lname ~ '^D';
 
 
 
