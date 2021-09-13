@@ -971,16 +971,77 @@ SELECT *
 
 -- 2 SIMILAR TO
 SELECT *
-FROM emp_details
-WHERE emp_lname SIMILAR TO 'D%';
+  FROM emp_details
+ WHERE emp_lname SIMILAR TO 'D%';
 
 -- 3 REGEX
 SELECT *
-FROM emp_details
-WHERE emp_lname ~ '^D';
+  FROM emp_details
+ WHERE emp_lname ~ '^D';
 
+/* PART 4. Aggregate Functions. */
 
+/* Ex. 1. 
+   From the following table, write a SQL query to calculate total purchase amount of all orders. Return total purchase amount.   
+   Sample table: orders  
+*/ 
+SELECT SUM(purch_amt) AS total_purch_amt
+  FROM orders;
 
+/* Ex. 2. 
+   From the following table, write a SQL query to calculate average purchase amount of all orders. Return average purchase amount.   
+   Sample table: orders 
+*/ 
+
+SELECT AVG(purch_amt) AS avg_purch_amt
+  FROM orders;
+
+/* Ex. 3. 
+   From the following table, write a SQL query to count the number of unique salespeople. Return number of salespeople.   
+   Sample table: orders 
+*/ 
+
+SELECT COUNT(DISTINCT salesman_id) AS count_salesman
+  FROM orders;
+
+/* Ex. 4. 
+   From the following table, write a SQL query to count the number of customers. Return number of customers.   
+   Sample table: customer 
+*/ 
+
+-- 1
+SELECT COUNT(customer_id) AS count_customer
+  FROM customer;
+  
+-- 2
+SELECT COUNT(DISTINCT cust_name) AS count_customer
+  FROM customer;
+
+-- 3
+SELECT COUNT(*) AS count_customer
+  FROM customer;
+
+/* Ex. 5. 
+   From the following table, write a SQL query to find the number of customers who got at least a gradation for his/her activity.   
+   Sample table: customer 
+*/ 
+
+-- 1
+SELECT COUNT(*) AS count_cust_with_grade
+  FROM customer
+ WHERE grade is NOT NULL;
+
+-- 2 
+SELECT COUNT(ALL grade) AS count_cust_with_grade
+  FROM customer;
+
+/* Ex. 6. 
+   From the following table, write a SQL query to find the maximum purchase amount.    
+   Sample table: orders 
+*/ 
+
+SELECT MAX(purch_amt) AS max_purch_amt
+  FROM orders;
 
 
 
