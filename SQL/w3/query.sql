@@ -1043,6 +1043,51 @@ SELECT COUNT(ALL grade) AS count_cust_with_grade
 SELECT MAX(purch_amt) AS max_purch_amt
   FROM orders;
 
+/* Ex. 7. 
+   From the following table, write a SQL query to find the minimum purchase amount.   
+   Sample table: orders
+*/ 
+
+SELECT MIN(purch_amt) AS min_purch_amt
+  FROM orders;
+
+/* Ex. 8. 
+   From the following table, write a SQL query to find the highest grade of the customers for each of the city. 
+   Return city, maximum grade.    
+   Sample table: customer
+*/ 
+
+SELECT city, MAX(grade) AS max_grade_city
+  FROM customer
+ GROUP BY city
+ ORDER BY city;
+
+/* Ex. 9. 
+   From the following table, write a SQL query to find the highest purchase amount ordered by each customer. 
+   Return customer ID, maximum purchase amount.   
+   Sample table: orders
+*/ 
+
+SELECT customer_id, MAX(purch_amt) AS max_purch_amt_cust
+  FROM orders
+ GROUP BY customer_id
+ ORDER BY customer_id;
+
+/* Ex. 10. 
+   From the following table, write a SQL query to find the highest purchase amount ordered by each customer on a particular date. 
+   Return, order date and highest purchase amount.   
+   Sample table: orders
+*/ 
+
+SELECT customer_id AS "Customer",
+       ord_date AS "Date",
+	   MAX(purch_amt) AS "Maximum Purch. amt."
+  FROM orders
+ GROUP BY customer_id, ord_date
+ ORDER BY customer_id;
+
+
+
 
 
 
