@@ -1217,23 +1217,77 @@ SELECT customer_id AS "Customer",
    Sample table: orders
 */ 
 
-SELECT *
-FROM orders
-LIMIT 20;
+-- 1
+SELECT salesman_id AS "Salesperson",
+       MAX(purch_amt) AS "Max Amount"
+  FROM orders
+ WHERE salesman_id BETWEEN 5003 AND 5008
+ GROUP BY salesman_id;
 
+-- 2
+SELECT salesman_id AS "Salesperson",
+       MAX(purch_amt) AS "Max Amount"
+  FROM  orders
+ GROUP BY salesman_id
+HAVING salesman_id BETWEEN 5003 AND 5008;
 
 /* Ex. 18. 
    From the following table, write a SQL query to count all the orders generated on '2012-08-17'. Return number of orders.   
    Sample table: orders
 */ 
 
+SELECT COUNT(*) AS "Number of orders"
+  FROM orders
+ WHERE ord_date = '2012-08-17';
+
 /* Ex. 19. 
    From the following table, write a SQL query to count number of salespeople who belongs to a city. Return number of salespeople.   
    Sample table: salesman
 */ 
+
+SELECT COUNT(*) AS "Salespeople from city"
+  FROM salesman
+ WHERE city IS NOT NULL;
 
 /* Ex. 20. 
    From the following table, write a SQL query to count number of orders by the combination of each order date and salesperson. 
    Return order date, salesperson id.  
    Sample table: orders
 */ 
+
+SELECT COUNT(*) AS "Number of orders",
+       ord_date AS "Date",
+	   salesman_id AS "Salesperson"
+  FROM orders
+ GROUP BY ord_date, salesman_id;
+ 
+/* Ex. 21. 
+   From the following table, write a SQL query to calculate the average product price. 
+   Return average product price.  
+   Sample table: item_mast
+*/ 
+
+/* Ex. 22. 
+   From the following table, write a SQL query to count number of products where product price is higher than or equal to 350. 
+   Return number of products.  
+   Sample table: item_mast
+*/ 
+
+/* Ex. 23. 
+   From the following table, write a SQL query to compute the average price for unique companies. 
+   Return average price and company id.  
+   Sample table: item_mast
+*/ 
+
+/* Ex. 24. 
+   From the following table, write a SQL query to compute the sum of the allotment amount of all departments. 
+   Return sum of the allotment amount.   
+   Sample table: emp_department
+*/ 
+
+/* Ex. 25. 
+   From the following table, write a SQL query to find the number of employees in each department. 
+   Return department code and number of employees.  
+   Sample table: emp_details
+*/ 
+
