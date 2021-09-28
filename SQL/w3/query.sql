@@ -1320,11 +1320,34 @@ SELECT emp_dept AS "Department code",
    Sample table: salesman
 */ 
 
+-- 1
+SELECT salesman_id AS "Salesman",
+	   name AS "Name",
+	   city AS "City",
+	   commission * 100 AS "Commission, %"
+  FROM salesman;
+
+-- 2
+SELECT salesman_id AS "Salesman",
+	   name AS "Name",
+	   city AS "City",
+	   commission * 100 AS "Commission",
+	   '%' AS "Measurement units"
+  FROM salesman;
+
 /* Ex. 2. 
    From the following table, write a SQL query to find the number of orders booked for each day. 
    Return the result in a format like "For 2001-10-10 there are 15 orders".".   
    Sample table: orders
 */ 
+
+SELECT 'For',  
+       ord_date,
+	   'there are',
+	   COUNT(*),
+       'orders.'
+  FROM orders
+ GROUP BY ord_date;
 
 /* Ex. 3. 
    From the following table, write a SQL query to find all the orders. Sort the result-set in ascending order by ord_no. 
@@ -1332,17 +1355,41 @@ SELECT emp_dept AS "Department code",
    Sample table: orders
 */ 
 
+SELECT ord_no AS "Orders",
+       purch_amt AS "Purchase Amount",
+	   ord_date AS "Date",
+	   customer_id AS "Customer",
+	   salesman_id AS "Salesman"
+  FROM orders
+ ORDER BY ord_no ASC;
+
 /* Ex. 4. 
    From the following table, write a SQL query to find all the orders. 
    Sort the result-set in descending order by ord_date. Return all fields.   
    Sample table: orders
 */ 
 
+SELECT ord_no AS "Orders",
+       purch_amt AS "Purchase Amount",
+	   ord_date AS "Date",
+	   customer_id AS "Customer",
+	   salesman_id AS "Salesman"
+  FROM orders
+ ORDER BY ord_date DESC;
+
 /* Ex. 5. 
    From the following table, write a SQL query to find all the orders. 
    Sort the result-set in descending order by ord_date and purch_amt. Return all fields.    
    Sample table: orders
 */ 
+
+SELECT ord_no AS "Orders",
+       purch_amt AS "Purchase Amount",
+	   ord_date AS "Date",
+	   customer_id AS "Customer",
+	   salesman_id AS "Salesman"
+  FROM orders
+ ORDER BY ord_date, purch_amt DESC;
 
 /* Ex. 6. 
    From the following table, write a SQL query to find all the customers. 
