@@ -1396,6 +1396,11 @@ SELECT ord_no AS "Orders",
    Sort the result-set by customer_id. Return cust_name, city, grade.   
    Sample table: customer
 */ 
+SELECT cust_name AS "Customer",
+       city AS "City",
+	   grade AS "Grade"
+  FROM customer
+ ORDER BY customer_id;
 
 /* Ex. 7. 
    From the following table, write a SQL query to calculate the maximum purchase amount 
@@ -1405,11 +1410,32 @@ SELECT ord_no AS "Orders",
    Sample table: orders
 */ 
 
+SELECT salesman_id AS "ID",
+       ord_date AS "Date",
+	   MAX(purch_amt) AS "Max Amount"
+  FROM orders
+ GROUP BY salesman_id, ord_date
+ ORDER BY salesman_id;
+
 /* Ex. 8. 
    From the following table, write a SQL query to find all the customers. 
    Sort the result-set in descending order on 3rd field. Return customer name, city and grade.    
    Sample table: customer
 */ 
+
+-- 1
+SELECT cust_name AS "Customer",
+       city AS "City",
+	   grade AS "Grade"
+  FROM customer
+ ORDER BY 3 DESC;
+
+-- 2
+SELECT cust_name AS "Customer",
+       city AS "City",
+	   grade AS "Grade"
+  FROM customer
+ ORDER BY grade DESC;
 
 /* Ex. 9. 
    From the following table, write a SQL query to count the unique orders, highest purchase amount for each customer. 
@@ -1418,6 +1444,13 @@ SELECT ord_no AS "Orders",
    Sample table: orders
 */ 
 
+SELECT customer_id AS "ID",
+       COUNT(*) AS "Num of orders",
+	   MAX(purch_amt) AS "Max Amount"
+  FROM orders
+ GROUP BY customer_id
+ ORDER BY 2 DESC;
+
 /* Ex. 10. 
    From the following table, write a SQL query to calculate summation of purchase amount, 
    total commission (15% for all salesmen) by each order date. Sort the result-set on order date. 
@@ -1425,5 +1458,76 @@ SELECT ord_no AS "Orders",
    Sample table : orders
 */ 
 
+SELECT ord_date AS "Date",
+       SUM(purch_amt) AS "Sum Amount",
+	   0.15 * SUM(purch_amt) AS "15% Commision"
+  FROM orders
+ GROUP BY ord_date
+ ORDER BY ord_date;
 
- 
+/* PART 6. Query on Multiple Tables. */
+
+/* Ex. 1. 
+   From the following tables, write a SQL query to find the salespersons and customers who live in same city. 
+   Return customer name, salesperson name and salesperson city.  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 2. 
+   From the following tables, write a SQL query to find all the customers along with the salesperson who works for them. 
+   Return customer name, and salesperson name.   
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 3. 
+   From the following tables, write a SQL query to find those sales people who generated orders for their customers 
+   but not located in the same city. 
+   Return ord_no, cust_name, customer_id (orders table), salesman_id (orders table).   
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
+
+/* Ex. 4. 
+   From the following tables, write a SQL query to find those orders made by customers. 
+   Return order number, customer name.   
+   Sample table: orders
+   Sample table: customer
+*/ 
+
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find those customers where each customer has 
+   a grade and served by at least a salesperson who belongs to a city. 
+   Return cust_name as "Customer", grade as "Grade".    
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
+
+/* Ex. 6. 
+   From the following table, write a SQL query to find those customers who served by a salesperson 
+   and the salesperson works at the commission in the range 12% to 14% (Begin and end values are included.). 
+   Return cust_name AS "Customer", city AS "City".  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 7. 
+   From the following tables, write a SQL query to find those orders executed by the salesperson, 
+   ordered by the customer whose grade is greater than or equal to 200. Compute purch_amt*commission as "Commission". 
+   Return customer name, commission as "Commission%" and Commission.  
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
+
+/* Ex. 8. 
+   From the following table, write a SQL query to find those customers who made orders on October 5, 2012. 
+   Return customer_id, cust_name, city, grade, salesman_id, ord_no, purch_amt, ord_date, customer_id and salesman_id.  
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
