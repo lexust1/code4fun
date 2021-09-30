@@ -1474,12 +1474,23 @@ SELECT ord_date AS "Date",
    Sample table: customer
 */ 
 
+SELECT customer.cust_name AS "Customer name",
+       salesman.name AS "Salesperson",
+	   salesman.city AS "Salesperson city"
+  FROM customer, salesman
+ WHERE salesman.city = customer.city;
+       
 /* Ex. 2. 
    From the following tables, write a SQL query to find all the customers along with the salesperson who works for them. 
    Return customer name, and salesperson name.   
    Sample table: customer
    Sample table: salesman
 */ 
+
+SELECT customer.cust_name AS "Customer name",
+       salesman.name AS "Salesperson name"
+  FROM customer, salesman
+ WHERE salesman.salesman_id = customer.salesman_id;
 
 /* Ex. 3. 
    From the following tables, write a SQL query to find those sales people who generated orders for their customers 
@@ -1489,6 +1500,15 @@ SELECT ord_date AS "Date",
    Sample table: customer
    Sample table: orders
 */ 
+
+SELECT orders.ord_no AS "Order number",
+       customer.cust_name AS "Customer name",
+	   orders.customer_id AS "Customer ID",
+	   orders.salesman_id AS "Salesman ID"
+  FROM orders, customer, salesman
+ WHERE orders.salesman_id = salesman.salesman_id
+   AND orders.customer_id = customer.customer_id  
+   AND salesman.city != customer.city;
 
 /* Ex. 4. 
    From the following tables, write a SQL query to find those orders made by customers. 
