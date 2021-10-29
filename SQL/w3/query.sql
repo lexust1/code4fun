@@ -1474,8 +1474,17 @@ SELECT ord_date AS "Date",
    Sample table: customer
 */ 
 
+-- 1 JOIN
+SELECT c.cust_name AS "Customer name",
+       s.name AS "Salesperson name",
+	   s.city AS "City"
+  FROM salesman AS s
+  JOIN customer AS c
+    ON s.city = c.city;
+
+-- 2 WHERE
 SELECT customer.cust_name AS "Customer name",
-       salesman.name AS "Salesperson",
+       salesman.name AS "Salesperson name",
 	   salesman.city AS "Salesperson city"
   FROM customer, salesman
  WHERE salesman.city = customer.city;
@@ -1487,6 +1496,14 @@ SELECT customer.cust_name AS "Customer name",
    Sample table: salesman
 */ 
 
+-- 1 JOIN
+SELECT customer.cust_name AS "Customer name",
+       salesman.name AS "Salesperson name"
+  FROM customer
+  JOIN salesman
+    ON customer.salesman_id = salesman.salesman_id;
+
+-- 2 WHERE
 SELECT customer.cust_name AS "Customer name",
        salesman.name AS "Salesperson name"
   FROM customer, salesman
@@ -1501,6 +1518,31 @@ SELECT customer.cust_name AS "Customer name",
    Sample table: orders
 */ 
 
+-- 1 JOIN+WHERE
+SELECT orders.ord_no AS "Order number",
+       customer.cust_name AS "Customer name",
+	   orders.customer_id AS "Customer ID",
+	   orders.salesman_id AS "Salesman ID"
+  FROM orders
+       JOIN salesman
+       ON orders.salesman_id = salesman.salesman_id
+       JOIN customer
+       ON orders.customer_id = customer.customer_id
+ WHERE salesman.city != customer.city;
+
+-- 2 JOIN
+SELECT orders.ord_no AS "Order number",
+       customer.cust_name AS "Customer name",
+	   orders.customer_id AS "Customer ID",
+	   orders.salesman_id AS "Salesman ID"
+  FROM orders
+  JOIN salesman
+    ON orders.salesman_id = salesman.salesman_id
+  JOIN customer
+    ON orders.customer_id = customer.customer_id
+   AND salesman.city != customer.city;
+
+-- 3 WHERE
 SELECT orders.ord_no AS "Order number",
        customer.cust_name AS "Customer name",
 	   orders.customer_id AS "Customer ID",
@@ -1516,7 +1558,29 @@ SELECT orders.ord_no AS "Order number",
    Sample table: orders
    Sample table: customer
 */ 
+SELECT * 
+FROM salesman
+LIMIT 20;
 
+SELECT * 
+FROM customer
+LIMIT 20;
+
+SELECT * 
+FROM orders
+LIMIT 20;
+
+SELECT orders.ord_no AS "Order number",
+       customer.cust_name AS "Customer name"
+FROM orders --AS o
+JOIN customer --AS c
+ON orders.customer_id = customer.customer_id;
+
+SELECT o.ord_no AS "Order number",
+       c.cust_name AS "Customer name"
+FROM orders AS o
+JOIN customer AS c
+ON o.customer_id = c.customer_id;
 
 /* Ex. 5. 
    From the following tables, write a SQL query to find those customers where each customer has 
