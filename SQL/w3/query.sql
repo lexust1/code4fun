@@ -1,5 +1,7 @@
 /* Connect to sqlex database
-   Exercises from w3 */
+   Exercises from w3 
+   https://www.w3resource.com/sql-exercises/
+*/
 
 /* PART 1. Retrieve data from tables. */
 
@@ -1558,6 +1560,30 @@ SELECT orders.ord_no AS "Order number",
    Sample table: orders
    Sample table: customer
 */ 
+
+-- JOIN
+SELECT o.ord_no AS "Order number",
+       c.cust_name AS "Customer name"
+  FROM orders AS o
+  JOIN customer AS c
+    ON o.customer_id = c.customer_id;
+
+-- WHERE
+SELECT o.ord_no AS "Order number",
+       c.cust_name AS "Customer name"
+  FROM orders AS o,
+       customer AS c
+ WHERE o.customer_id = c.customer_id;
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find those customers where each customer has 
+   a grade and served by at least a salesperson who belongs to a city. 
+   Return cust_name as "Customer", grade as "Grade".    
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
+
 SELECT * 
 FROM salesman
 LIMIT 20;
@@ -1570,26 +1596,25 @@ SELECT *
 FROM orders
 LIMIT 20;
 
-SELECT orders.ord_no AS "Order number",
-       customer.cust_name AS "Customer name"
-FROM orders --AS o
-JOIN customer --AS c
-ON orders.customer_id = customer.customer_id;
+-- JOIN + WHERE
 
-SELECT o.ord_no AS "Order number",
-       c.cust_name AS "Customer name"
-FROM orders AS o
-JOIN customer AS c
-ON o.customer_id = c.customer_id;
+SELECT c.cust_name AS "Customer",
+       c.grade AS "Grade"
+  FROM customer AS c
+  JOIN salesman AS s
+    ON c.salesman_id = s.salesman_id
+ WHERE c.grade IS NOT NULL
+   AND s.city IS NOT NULL;	
 
-/* Ex. 5. 
-   From the following tables, write a SQL query to find those customers where each customer has 
-   a grade and served by at least a salesperson who belongs to a city. 
-   Return cust_name as "Customer", grade as "Grade".    
-   Sample table: salesman
-   Sample table: customer
-   Sample table: orders
-*/ 
+-- WHERE
+
+SELECT c.cust_name AS "Customer",
+	   c.grade AS "Grade"
+  FROM customer AS c,
+       salesman AS s
+ WHERE c.salesman_id = s.salesman_id
+   AND c.grade IS NOT NULL
+   AND s.city IS NOT NULL;
 
 /* Ex. 6. 
    From the following table, write a SQL query to find those customers who served by a salesperson 
@@ -1598,6 +1623,7 @@ ON o.customer_id = c.customer_id;
    Sample table: salesman
    Sample table: customer
 */ 
+
 
 /* Ex. 7. 
    From the following tables, write a SQL query to find those orders executed by the salesperson, 
