@@ -1584,18 +1584,6 @@ SELECT o.ord_no AS "Order number",
    Sample table: orders
 */ 
 
-SELECT * 
-FROM salesman
-LIMIT 20;
-
-SELECT * 
-FROM customer
-LIMIT 20;
-
-SELECT * 
-FROM orders
-LIMIT 20;
-
 -- JOIN + WHERE
 
 SELECT c.cust_name AS "Customer",
@@ -1624,6 +1612,23 @@ SELECT c.cust_name AS "Customer",
    Sample table: customer
 */ 
 
+-- JOIN
+SELECT c.cust_name AS "Customer",
+	   c.city AS "City",
+	   s.commission AS "Commision"
+  FROM customer AS c
+  JOIN salesman AS s
+    ON c.salesman_id = s.salesman_id
+ WHERE s.commission BETWEEN 12/100.0 AND 14/100.0;
+
+-- WHERE
+SELECT c.cust_name AS "Customer",
+	   c.city AS "City",
+	   s.commission AS "Commision"
+  FROM customer AS c,
+       salesman AS s
+ WHERE c.salesman_id = s.salesman_id
+   AND s.commission BETWEEN 12/100.0 AND 14/100.0;
 
 /* Ex. 7. 
    From the following tables, write a SQL query to find those orders executed by the salesperson, 
@@ -1634,6 +1639,30 @@ SELECT c.cust_name AS "Customer",
    Sample table: orders
 */ 
 
+-- JOIN
+SELECT c.cust_name AS "Customer",
+       o.ord_no AS "Order",
+       o.purch_amt * s.commission AS "Commission"
+  FROM orders AS o
+  JOIN salesman AS s
+    ON o.salesman_id = s.salesman_id
+  JOIN customer AS c
+    ON o.customer_id = c.customer_id
+ WHERE c.grade >= 200
+   AND c.grade IS NOT NULL;
+
+-- WHERE
+SELECT c.cust_name AS "Customer",
+       o.ord_no AS "Order",
+       o.purch_amt * s.commission AS "Commission"
+  FROM orders AS o,
+       salesman AS s,
+	   customer AS c
+ WHERE o.salesman_id = s.salesman_id
+   AND o.customer_id = c.customer_id
+   AND c.grade >= 200
+   AND c.grade IS NOT NULL;
+
 /* Ex. 8. 
    From the following table, write a SQL query to find those customers who made orders on October 5, 2012. 
    Return customer_id, cust_name, city, grade, salesman_id, ord_no, purch_amt, ord_date, customer_id and salesman_id.  
@@ -1641,3 +1670,27 @@ SELECT c.cust_name AS "Customer",
    Sample table: customer
    Sample table: orders
 */ 
+
+SELECT * 
+  FROM customer AS c
+  JOIN orders AS o
+    ON c.customer_id = o.customer_id
+ WHERE o.ord_date = '2012-10-05';
+
+SELECT * 
+  FROM customer AS c,
+       orders AS o
+ WHERE c.customer_id = o.customer_id
+   AND o.ord_date = '2012-10-05';
+ 
+SELECT * 
+FROM salesman
+LIMIT 20;
+
+SELECT * 
+FROM customer
+LIMIT 20;
+
+SELECT * 
+FROM orders
+LIMIT 20;
