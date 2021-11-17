@@ -1671,18 +1671,51 @@ SELECT c.cust_name AS "Customer",
    Sample table: orders
 */ 
 
+-- JOIN
 SELECT * 
   FROM customer AS c
   JOIN orders AS o
     ON c.customer_id = o.customer_id
  WHERE o.ord_date = '2012-10-05';
 
+-- WHERE
 SELECT * 
   FROM customer AS c,
        orders AS o
  WHERE c.customer_id = o.customer_id
    AND o.ord_date = '2012-10-05';
  
+/* PART 7. JOINS. */
+
+/* Ex. 1. 
+   From the following tables write a SQL query to find the salesperson and customer who belongs to same city. 
+   Return Salesman, cust_name and city.  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+-- JOIN
+SELECT s.name AS "Salesman Name",
+	   c.cust_name AS "Customer Name",
+	   c.city AS "City"
+  FROM salesman AS s
+  JOIN customer AS c
+    ON s.city = c.city;
+   
+-- WHERE
+SELECT s.name AS "Salesman Name",
+	   c.cust_name AS "Customer Name",
+	   c.city AS "City"
+  FROM salesman AS s,
+       customer AS c
+ WHERE s.city = c.city;
+  
+/* Ex. 2. 
+   From the following tables write a SQL query to find those orders where order amount exists between 500 and 2000. 
+   Return ord_no, purch_amt, cust_name, city.  
+   Sample table: orders
+   Sample table: customer
+*/ 
 SELECT * 
 FROM salesman
 LIMIT 20;
@@ -1694,3 +1727,197 @@ LIMIT 20;
 SELECT * 
 FROM orders
 LIMIT 20;
+
+/* Ex. 3. 
+   From the following tables write a SQL query to find the salesperson(s) and the customer(s) he handle. 
+   Return Customer Name, city, Salesman, commission.  
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 4. 
+   From the following tables write a SQL query to find those salespersons who received a commission from the company more than 12%. 
+   Return Customer Name, customer city, Salesman, commission.   
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 5. 
+   From the following tables write a SQL query to find those salespersons do not live in the same city 
+   where their customers live and received a commission from the company more than 12%. 
+   Return Customer Name, customer city, Salesman, salesman city, commission.   
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 6. 
+   From the following tables write a SQL query to find the details of an order. 
+   Return ord_no, ord_date, purch_amt, Customer Name, grade, Salesman, commission. 
+   Sample table: orders
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 7. 
+   Write a SQL statement to make a join on the tables salesman, customer and orders in such a form 
+   that the same column of each table will appear once and only the relational rows will come.  
+   Sample table: orders
+   Sample table: customer
+   Sample table : salesman
+*/ 
+
+/* Ex. 8. 
+   From the following tables write a SQL query to display the cust_name, customer city, grade, Salesman, salesman city. 
+   The result should be ordered by ascending on customer_id.
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 9. 
+   From the following tables write a SQL query to find those customers whose grade less than 300. 
+   Return cust_name, customer city, grade, Salesman, saleman city. The result should be ordered by ascending customer_id.  
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 10. 
+   Write a SQL statement to make a report with customer name, city, order number, order date, and order amount 
+   in ascending order according to the order date to find that either any of the existing customers have placed 
+   no order or placed one or more orders.  
+   Sample table: orders
+   Sample table: customer
+*/ 
+
+/* Ex. 11. 
+   Write a SQL statement to make a report with customer name, city, order number, order date, order amount salesman name 
+   and commission to find that either any of the existing customers have placed no order or placed one or more orders 
+   by their salesman or by own.  
+   Sample table: customer
+   Sample table: orders
+   Sample table: salesman
+*/ 
+
+/* Ex. 12. 
+   Write a SQL statement to make a list in ascending order for the salesmen who works either for one or more customer 
+   or not yet join under any of the customers.  
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+/* Ex. 13. 
+   From the following tables write a SQL query to list all salespersons along with customer name, city, grade, order number, date, and amount.  
+   Sample table: customer
+   Sample table: salesman
+   Sample table: orders
+*/ 
+
+/* Ex. 14. 
+   Write a SQL statement to make a list for the salesmen who either work for one or more customers or yet to join any of the customer. 
+   The customer may have placed, either one or more orders on or above order amount 2000 
+   and must have a grade, or he may not have placed any order to the associated supplier.  
+   Sample table: customer
+   Sample table: salesman
+   Sample table: orders
+*/ 
+
+/* Ex. 15. 
+   Write a SQL statement to make a report with customer name, city, order no. order date, purchase amount for those customers 
+   from the existing list who placed one or more orders or which order(s) have been placed by the customer who is not on the list.  
+   Sample table: customer
+   Sample table: orders
+*/ 
+
+/* Ex. 16. 
+   Write a SQL statement to make a report with customer name, city, order no. order date, purchase amount for only those customers 
+   on the list who must have a grade and placed one or more orders or which order(s) have been placed 
+   by the customer who is neither in the list nor have a grade.  
+   Sample table: customer
+   Sample table: orders
+*/ 
+
+/* Ex. 17. 
+   Write a SQL query to combine each row of salesman table with each row of customer table.  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 18. 
+   Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
+   and vice versa for that salesman who belongs to a city.  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 19. 
+   Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
+   and vice versa for those salesmen who belongs to a city and the customers who must have a grade.  
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 20.
+   Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
+   and vice versa for those salesmen who must belong a city which is not the same as his customer and the customers should have an own grade.  
+   Sample table: salesman
+   Sample table: customer  
+*/ 
+
+/* Ex. 21. 
+   From the following tables write a SQL query to select all rows from both participating tables as long as there 
+   is a match between pro_com and com_id. 
+   Sample table: company_mast
+   Sample table: item_mast
+*/ 
+
+/* Ex. 22. 
+   Write a SQL query to display the item name, price, and company name of all the products.  
+   Sample table: company_mast
+   Sample table: item_mast
+*/ 
+
+/* Ex. 23. 
+   From the following tables write a SQL query to calculate the average price of items of each company. Return average value and company name.  
+   Sample table: company_mast
+   Sample table: item_mast
+*/ 
+
+/* Ex. 24. 
+   From the following tables write a SQL query to calculate and find the average price of items of each company higher than or equal to Rs. 350. 
+   Return average value and company name.  
+   Sample table: company_mast
+   Sample table: item_mast
+*/ 
+
+/* Ex. 25. 
+   From the following tables write a SQL query to find the most expensive product of each company. Return pro_name, pro_price and com_name. 
+   Sample table: company_mast
+   Sample table: item_mast
+*/ 
+
+/* Ex. 26.
+   From the following tables write a SQL query to display all the data of employees including their department.  
+   Sample table: emp_department
+   Sample table: emp_details    
+*/ 
+
+/* Ex. 27. 
+   From the following tables write a SQL to display the first name and last name of each employee, along with the name 
+   and sanction amount for their department.  
+   Sample table: emp_department
+   Sample table: emp_details
+*/ 
+
+/* Ex. 28. 
+   From the following tables write a SQL query to find the departments with a budget more than Rs. 50000 and display 
+   the first name and last name of employees.  
+   Sample table: emp_department
+   Sample table: emp_details
+*/ 
+
+/* Ex. 29. 
+   From the following tables write a SQL query to find the names of departments where more than two employees are working. Return dpt_name.  
+   Sample table: emp_department
+   Sample table: emp_details
+*/ 
+
+
