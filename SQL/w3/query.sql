@@ -1715,7 +1715,87 @@ SELECT s.name AS "Salesman Name",
    Return ord_no, purch_amt, cust_name, city.  
    Sample table: orders
    Sample table: customer
+*/
+
+-- JOIN
+SELECT o.ord_no AS "Order Number",
+       o.purch_amt AS "Purch Amount",
+       c.cust_name AS "Customer Name",
+       c.city AS "City"
+  FROM orders AS o
+  JOIN customer AS c
+    ON o.customer_id = c.customer_id 
+ WHERE o.purch_amt BETWEEN 500 AND 2000;
+
+-- WHERE
+SELECT o.ord_no AS "Order Number",
+       o.purch_amt AS "Purch Amount",
+       c.cust_name AS "Customer Name",
+       c.city AS "City"
+  FROM orders AS o, customer AS c
+ WHERE o.customer_id = c.customer_id 
+   AND o.purch_amt BETWEEN 500 AND 2000;
+
+/* Ex. 3. 
+   From the following tables write a SQL query to find the salesperson(s) and the customer(s) he handle. 
+   Return Customer Name, city, Salesman, commission.  
+   Sample table: customer
+   Sample table: salesman
 */ 
+
+-- JOIN
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "City",
+       s.name AS "Salesman Name",
+       s.commission AS "Commission"
+  FROM customer AS c
+  JOIN salesman AS s
+    ON c.salesman_id = s.salesman_id; 
+
+-- WHERE
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "City",
+       s.name AS "Salesman Name",
+       s.commission AS "Commission"
+  FROM customer AS c, salesman AS s
+ WHERE c.salesman_id = s.salesman_id; 
+ 
+/* Ex. 4. 
+   From the following tables write a SQL query to find those salespersons who received a commission from the company more than 12%. 
+   Return Customer Name, customer city, Salesman, commission.   
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+-- JOIN
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "City",
+       s.name AS "Salesman Name",
+       s.commission AS "Commission"
+  FROM customer AS c
+  JOIN salesman AS s
+    ON c.salesman_id = s.salesman_id
+ WHERE s.commission > 12/100.0;
+
+-- WHERE
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "City",
+       s.name AS "Salesman Name",
+       s.commission AS "Commission"
+  FROM customer AS c, salesman AS s
+ WHERE c.salesman_id = s.salesman_id
+   AND s.commission > 12/100.0;
+
+/* Ex. 5. 
+   From the following tables write a SQL query to find those salespersons do not live in the same city 
+   where their customers live and received a commission from the company more than 12%. 
+   Return Customer Name, customer city, Salesman, salesman city, commission.   
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+
+  
 SELECT * 
 FROM salesman
 LIMIT 20;
@@ -1727,29 +1807,6 @@ LIMIT 20;
 SELECT * 
 FROM orders
 LIMIT 20;
-
-/* Ex. 3. 
-   From the following tables write a SQL query to find the salesperson(s) and the customer(s) he handle. 
-   Return Customer Name, city, Salesman, commission.  
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
-/* Ex. 4. 
-   From the following tables write a SQL query to find those salespersons who received a commission from the company more than 12%. 
-   Return Customer Name, customer city, Salesman, commission.   
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
-/* Ex. 5. 
-   From the following tables write a SQL query to find those salespersons do not live in the same city 
-   where their customers live and received a commission from the company more than 12%. 
-   Return Customer Name, customer city, Salesman, salesman city, commission.   
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
 /* Ex. 6. 
    From the following tables write a SQL query to find the details of an order. 
    Return ord_no, ord_date, purch_amt, Customer Name, grade, Salesman, commission. 
