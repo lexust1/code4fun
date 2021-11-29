@@ -1794,6 +1794,122 @@ SELECT c.cust_name AS "Customer Name",
    Sample table: salesman
 */ 
 
+-- JOIN
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "Customer City",
+       s.name AS "Salesman Name",
+       s.city AS "Salesman City",
+       s.commission AS "Commission"
+  FROM customer AS c
+  JOIN salesman AS s 
+    ON c.salesman_id = s.salesman_id
+ WHERE c.city != s.city 
+   AND s.commission > 12/100.00;
+
+-- WHERE 
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "Customer City",
+       s.name AS "Salesman Name",
+       s.city AS "Salesman City",
+       s.commission AS "Commission"
+  FROM customer AS c,
+       salesman AS s 
+ WHERE c.salesman_id = s.salesman_id
+   AND c.city != s.city 
+   AND s.commission > 12/100.00;
+
+/* Ex. 6. 
+   From the following tables write a SQL query to find the details of an order. 
+   Return ord_no, ord_date, purch_amt, Customer Name, grade, Salesman, commission. 
+   Sample table: orders
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+-- JOIN
+SELECT o.ord_no AS "Order num",
+       o.ord_date AS "Order date",
+       o.purch_amt AS "Purch amount",
+       c.cust_name AS "Customer name",
+       c.grade AS "Grade",
+       s.name AS "Salesman name",
+       s.commission AS "Commission"
+  FROM orders AS o
+  JOIN customer AS c
+    ON o.customer_id = c.customer_id 
+  JOIN salesman AS s
+    ON o.salesman_id  = s.salesman_id;
+
+-- WHERE
+SELECT o.ord_no AS "Order num",
+       o.ord_date AS "Order date",
+       o.purch_amt AS "Purch amount",
+       c.cust_name AS "Customer name",
+       c.grade AS "Grade",
+       s.name AS "Salesman name",
+       s.commission AS "Commission"
+  FROM orders AS o,
+       customer AS c,
+       salesman AS s
+ WHERE o.customer_id = c.customer_id 
+   AND o.salesman_id  = s.salesman_id;     
+
+/* Ex. 7. 
+   Write a SQL statement to make a join on the tables salesman, customer and orders in such a form 
+   that the same column of each table will appear once and only the relational rows will come.  
+   Sample table: orders
+   Sample table: customer
+   Sample table : salesman
+*/ 
+
+SELECT *
+  FROM orders 
+NATURAL JOIN customer
+NATURAL JOIN salesman;
+
+/* Ex. 8. 
+   From the following tables write a SQL query to display the cust_name, customer city, grade, Salesman, salesman city. 
+   The result should be ordered by ascending on customer_id.
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "Customer City",
+       c.grade AS "Grade",
+       s.name AS "Salesman Name",
+       s.city AS "Salesman City"
+  FROM customer AS c
+  LEFT JOIN salesman AS s 
+    ON c.salesman_id = s.salesman_id 
+ ORDER BY c.customer_id;
+
+/* Ex. 9. 
+   From the following tables write a SQL query to find those customers whose grade less than 300. 
+   Return cust_name, customer city, grade, Salesman, saleman city. The result should be ordered by ascending customer_id.  
+   Sample table: customer
+   Sample table: salesman
+*/ 
+
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "Customer City",
+       c.grade AS "Grade",
+       s.name AS "Salesman Name",
+       s.city AS "Salesman City",
+       c.customer_id 
+  FROM customer AS c
+  LEFT JOIN salesman AS s 
+    ON c.salesman_id = s.salesman_id 
+ WHERE c.grade < 300
+ ORDER BY c.customer_id;
+
+/* Ex. 10. 
+   Write a SQL statement to make a report with customer name, city, order number, order date, and order amount 
+   in ascending order according to the order date to find that either any of the existing customers have placed 
+   no order or placed one or more orders.  
+   Sample table: orders
+   Sample table: customer
+*/ 
 
   
 SELECT * 
@@ -1807,44 +1923,6 @@ LIMIT 20;
 SELECT * 
 FROM orders
 LIMIT 20;
-/* Ex. 6. 
-   From the following tables write a SQL query to find the details of an order. 
-   Return ord_no, ord_date, purch_amt, Customer Name, grade, Salesman, commission. 
-   Sample table: orders
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
-/* Ex. 7. 
-   Write a SQL statement to make a join on the tables salesman, customer and orders in such a form 
-   that the same column of each table will appear once and only the relational rows will come.  
-   Sample table: orders
-   Sample table: customer
-   Sample table : salesman
-*/ 
-
-/* Ex. 8. 
-   From the following tables write a SQL query to display the cust_name, customer city, grade, Salesman, salesman city. 
-   The result should be ordered by ascending on customer_id.
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
-/* Ex. 9. 
-   From the following tables write a SQL query to find those customers whose grade less than 300. 
-   Return cust_name, customer city, grade, Salesman, saleman city. The result should be ordered by ascending customer_id.  
-   Sample table: customer
-   Sample table: salesman
-*/ 
-
-/* Ex. 10. 
-   Write a SQL statement to make a report with customer name, city, order number, order date, and order amount 
-   in ascending order according to the order date to find that either any of the existing customers have placed 
-   no order or placed one or more orders.  
-   Sample table: orders
-   Sample table: customer
-*/ 
-
 /* Ex. 11. 
    Write a SQL statement to make a report with customer name, city, order number, order date, order amount salesman name 
    and commission to find that either any of the existing customers have placed no order or placed one or more orders 
