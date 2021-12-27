@@ -1911,19 +1911,17 @@ SELECT c.cust_name AS "Customer Name",
    Sample table: customer
 */ 
 
-  
-SELECT * 
-FROM salesman
-LIMIT 20;
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "City",
+       o.ord_no AS "Order Number",
+       o.ord_date AS "Order Date",
+       o.purch_amt AS "Order Amount"
+  FROM customer AS c
+  LEFT JOIN orders AS o 
+    ON c.customer_id = o.customer_id 
+ ORDER BY o.ord_date;
 
-SELECT * 
-FROM customer
-LIMIT 20;
-
-SELECT * 
-FROM orders
-LIMIT 20;
-/* Ex. 11. 
+ /* Ex. 11. 
    Write a SQL statement to make a report with customer name, city, order number, order date, order amount salesman name 
    and commission to find that either any of the existing customers have placed no order or placed one or more orders 
    by their salesman or by own.  
@@ -1932,6 +1930,18 @@ LIMIT 20;
    Sample table: salesman
 */ 
 
+SELECT c.cust_name AS "Customer Name",
+       c.city AS "Customer City",
+       o.ord_no AS "Order number",
+       o.ord_date AS "Order Date",
+       o.purch_amt AS "Purch_amt",
+       s.commission AS "Commission"
+  FROM customer AS c
+  LEFT JOIN orders AS o 
+    ON c.customer_id  = o.customer_id
+  LEFT JOIN salesman AS s 
+    ON c.salesman_id = s.salesman_id;
+
 /* Ex. 12. 
    Write a SQL statement to make a list in ascending order for the salesmen who works either for one or more customer 
    or not yet join under any of the customers.  
@@ -1939,12 +1949,45 @@ LIMIT 20;
    Sample table: salesman
 */ 
 
+-- 1   
+SELECT name AS "Salesman Name"
+  FROM salesman AS s
+ ORDER BY name;
+
+-- 2
+SELECT DISTINCT s.name AS "Salesman Name"
+  FROM salesman AS s
+  LEFT JOIN customer AS c
+    ON s.salesman_id = c.salesman_id
+ ORDER BY s.name;
+
+-- 3 
+SELECT DISTINCT s.name AS "Salesman Name"
+  FROM customer AS c
+ RIGHT JOIN salesman AS s 
+    ON c.salesman_id = s.salesman_id 
+ ORDER BY s.name;
+   
 /* Ex. 13. 
    From the following tables write a SQL query to list all salespersons along with customer name, city, grade, order number, date, and amount.  
    Sample table: customer
    Sample table: salesman
    Sample table: orders
 */ 
+
+SELECT s.name AS "Salesman Name",
+       c.cust_name AS "Customer Name",
+       c.city AS "City",
+       c.grade AS "Grade",
+       o.ord_no AS "Order number",
+       o.ord_date AS "Order date",
+       o.purch_amt AS "Purchase amount"
+  FROM salesman AS s
+  LEFT JOIN customer AS c 
+    ON s.salesman_id = c.salesman_id 
+  LEFT JOIN orders AS o 
+    ON c.customer_id = o.customer_id; 
+   
 
 /* Ex. 14. 
    Write a SQL statement to make a list for the salesmen who either work for one or more customers or yet to join any of the customer. 
@@ -1955,13 +1998,35 @@ LIMIT 20;
    Sample table: orders
 */ 
 
+SELECT s.name AS "Salesman Name",
+       c.cust_name AS "Customer Name",
+       o.purch_amt AS "Purchase Amount",
+       c.grade AS "Customer Grade"
+  FROM salesman AS s
+  LEFT JOIN customer AS c 
+    ON s.salesman_id = c.salesman_id 
+  LEFT JOIN orders AS o 
+    ON c.customer_id = o.customer_id
+ WHERE o.purch_amt >= 2000
+   AND c.grade IS NOT NULL;
+
 /* Ex. 15. 
    Write a SQL statement to make a report with customer name, city, order no. order date, purchase amount for those customers 
    from the existing list who placed one or more orders or which order(s) have been placed by the customer who is not on the list.  
    Sample table: customer
    Sample table: orders
 */ 
-
+   
+SELECT c.cust_name AS "Customer Name",
+	   c.city AS "Customer City",
+	   o.ord_no AS "Order Number",
+	   o.ord_date AS "Order Date",
+	   o.purch_amt AS "Purchase amount"
+  FROM customer AS c
+  FULL OUTER JOIN orders AS o
+    ON c.customer_id = o.customer_id;        
+  
+  
 /* Ex. 16. 
    Write a SQL statement to make a report with customer name, city, order no. order date, purchase amount for only those customers 
    on the list who must have a grade and placed one or more orders or which order(s) have been placed 
@@ -1970,11 +2035,37 @@ LIMIT 20;
    Sample table: orders
 */ 
 
+SELECT c.cust_name AS "Customer Name",
+	   c.city AS "Customer City",
+	   o.ord_no AS "Order Number",
+	   o.ord_date AS "Date",
+	   o.purch_amt AS "Purchase Amount"
+  FROM customer AS c
+  FULL OUTER JOIN orders AS o 
+    ON c.customer_id = o.customer_id
+ WHERE c.grade IS NOT NULL;
+
 /* Ex. 17. 
    Write a SQL query to combine each row of salesman table with each row of customer table.  
    Sample table: salesman
    Sample table: customer
 */ 
+
+SELECT *
+  FROM salesman AS s
+ CROSS JOIN customer AS c; 
+   
+SELECT * 
+FROM salesman
+LIMIT 20;
+
+SELECT * 
+FROM customer
+LIMIT 20;
+
+SELECT * 
+FROM orders
+LIMIT 20; 
 
 /* Ex. 18. 
    Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
