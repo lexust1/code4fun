@@ -2054,18 +2054,6 @@ SELECT c.cust_name AS "Customer Name",
 SELECT *
   FROM salesman AS s
  CROSS JOIN customer AS c; 
-   
-SELECT * 
-FROM salesman
-LIMIT 20;
-
-SELECT * 
-FROM customer
-LIMIT 20;
-
-SELECT * 
-FROM orders
-LIMIT 20; 
 
 /* Ex. 18. 
    Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
@@ -2074,6 +2062,11 @@ LIMIT 20;
    Sample table: customer
 */ 
 
+SELECT *
+  FROM salesman as s
+ CROSS JOIN customer AS c
+ WHERE s.city IS NOT NULL;
+
 /* Ex. 19. 
    Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
    and vice versa for those salesmen who belongs to a city and the customers who must have a grade.  
@@ -2081,13 +2074,27 @@ LIMIT 20;
    Sample table: customer
 */ 
 
+SELECT * 
+  FROM salesman AS s
+ CROSS JOIN customer AS c 
+ WHERE s.city IS NOT NULL 
+   AND c.grade IS NOT NULL;
+
 /* Ex. 20.
    Write a SQL statement to make a cartesian product between salesman and customer i.e. each salesman will appear for all customer 
    and vice versa for those salesmen who must belong a city which is not the same as his customer and the customers should have an own grade.  
    Sample table: salesman
    Sample table: customer  
 */ 
-
+  
+SELECT *
+  FROM salesman AS s
+ CROSS JOIN customer AS c 
+ WHERE s.city != c.city 
+   AND c.grade IS NOT NULL
+   AND s.city IS NOT NULL
+   AND c.city IS NOT NULL;
+  
 /* Ex. 21. 
    From the following tables write a SQL query to select all rows from both participating tables as long as there 
    is a match between pro_com and com_id. 
@@ -2095,11 +2102,23 @@ LIMIT 20;
    Sample table: item_mast
 */ 
 
+SELECT *
+  FROM company_mast AS c
+  JOIN item_mast AS i
+    ON c.com_id = i.pro_com;
+
 /* Ex. 22. 
    Write a SQL query to display the item name, price, and company name of all the products.  
    Sample table: company_mast
    Sample table: item_mast
 */ 
+
+SELECT i.pro_name AS "Item Name",
+       i.pro_price AS "Item Price",
+       c.com_name AS "Company Name"
+FROM item_mast AS i
+JOIN company_mast AS c 
+ON i.pro_com = c.com_id;
 
 /* Ex. 23. 
    From the following tables write a SQL query to calculate the average price of items of each company. Return average value and company name.  
@@ -2107,6 +2126,14 @@ LIMIT 20;
    Sample table: item_mast
 */ 
 
+SELECT c.com_name AS "Company Name",
+       AVG(i.pro_price) AS "Average price"
+  FROM company_mast AS c
+  JOIN item_mast AS i 
+    ON c.com_id = i.pro_com 
+ GROUP BY c.com_name; 
+
+       
 /* Ex. 24. 
    From the following tables write a SQL query to calculate and find the average price of items of each company higher than or equal to Rs. 350. 
    Return average value and company name.  
@@ -2114,11 +2141,78 @@ LIMIT 20;
    Sample table: item_mast
 */ 
 
+SELECT c.com_name AS "Company Name",
+       AVG(i.pro_price) AS "Average Price"
+  FROM company_mast AS c
+  JOIN item_mast AS i 
+    ON c.com_id = i.pro_com 
+ GROUP BY c.com_name
+HAVING AVG(i.pro_price) >= 350;
+
 /* Ex. 25. 
    From the following tables write a SQL query to find the most expensive product of each company. Return pro_name, pro_price and com_name. 
    Sample table: company_mast
    Sample table: item_mast
-*/ 
+*/                                           
+  
+-- 1 WITH
+WITH cte AS (SELECT pro_com, 
+  		            MAX(pro_price) AS max_pro_price
+	   		   FROM item_mast AS i 
+      		  GROUP BY pro_com)
+SELECT i.pro_name AS "Product Name",
+       i.pro_price AS "Product Price",
+       c.com_name AS "Company Name"
+  FROM item_mast AS i
+  JOIN company_mast AS c 
+    ON i.pro_com = c.com_id
+  JOIN cte AS cte
+    ON i.pro_com = cte.pro_com
+ WHERE i.pro_price = cte.max_pro_price;
+   		      
+
+-- 2 subquiery/derived table
+SELECT i.pro_name AS "Product Name",
+       i.pro_price AS "Product Price",
+       c.com_name AS "Company Name"
+  FROM item_mast AS i
+  JOIN company_mast AS c 
+    ON i.pro_com = c.com_id 
+  JOIN (SELECT pro_com, 
+  		       MAX(pro_price) AS max_pro_price
+	      FROM item_mast AS i 
+         GROUP BY pro_com) AS q 
+    ON i.pro_com = q.pro_com
+ WHERE i.pro_price = q.max_pro_price;
+
+-- 3 subquiery/derived table
+SELECT i.pro_name AS "Product Name",
+       i.pro_price AS "Product Price",
+       c.com_name AS "Company Name"
+  FROM item_mast AS i
+  JOIN company_mast AS c 
+    ON i.pro_com = c.com_id
+   AND i.pro_price = (SELECT MAX(i.pro_price) 
+                        FROM item_mast AS i
+                       WHERE i.pro_com = c.com_id);    
+
+
+-- 4 two subquiries 
+SELECT q1.pro_name AS "Product Name",
+       q1.pro_price AS "Product Price",
+       c.com_name AS "Company Name"
+  FROM company_mast AS c 
+  JOIN (SELECT i.pro_name, 
+               i.pro_price, 
+               i.pro_com
+  		  FROM item_mast AS i
+  		  JOIN (SELECT pro_com, 
+  		               MAX(pro_price) AS max_pro_price
+	              FROM item_mast AS i 
+                 GROUP BY pro_com) AS q
+            ON i.pro_com = q.pro_com
+         WHERE i.pro_price = q.max_pro_price) AS q1
+    ON c.com_id = q1.pro_com;                        
 
 /* Ex. 26.
    From the following tables write a SQL query to display all the data of employees including their department.  
@@ -2145,5 +2239,63 @@ LIMIT 20;
    Sample table: emp_department
    Sample table: emp_details
 */ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
