@@ -2966,24 +2966,35 @@ SELECT customer_id AS "Customer ID",
    Sample table: item_mast
 */
 
-SELECT *
-  FROM salesman 
- LIMIT 20;
+					 
+-- Subquery
+SELECT AVG(pro_price) AS "Avg. Price",
+  	   (SELECT com_name FROM company_mast WHERE com_id = pro_com) AS "Company Name"
+  FROM item_mast 
+ GROUP BY pro_com;					 
 
-SELECT *
-  FROM customer
- LIMIT 20;
-
-SELECT *
-  FROM orders
- LIMIT 20;
-
+-- JOIN					 
+SELECT AVG(im.pro_price) AS "Avg. Price",
+  	   cm.com_name AS "Company Name"
+  FROM item_mast AS im
+  JOIN company_mast AS cm
+    ON im.pro_com = cm.com_id
+ GROUP BY cm.com_name;    
+					 
 /* Ex. 32. 
    From the following tables, write a SQL query to calculate the average price of the products and find price which are more than or equal to 350. 
    Return Average Price and Company.
    Sample table: company_mast
    Sample table: item_mast
 */
+
+SELECT AVG(im.pro_price) AS "Avg. Price",
+   	   cm.com_name AS "Company Name"
+  FROM item_mast AS im
+  JOIN company_mast AS cm
+    ON im.pro_com = cm.com_id
+ GROUP BY cm.com_name
+HAVING AVG(pro_price) >= 350; 
 
 /* Ex. 33. 
    From the following tables, write a SQL query to find the most expensive product of each company. 
@@ -2992,18 +3003,54 @@ SELECT *
    Sample table: item_mast
 */
 
+SELECT im.pro_name AS "Product Name",
+	   im.pro_price AS "Price",
+       cm.com_name AS "Company Name"
+  FROM item_mast AS im
+  JOIN (SELECT MAX(pro_price) as max_pro_price, 
+  			   pro_com 
+  		  FROM item_mast 
+  		 GROUP BY pro_com) AS mp
+    ON im.pro_com = mp.pro_com 
+   AND im.pro_price = mp.max_pro_price
+  JOIN company_mast AS cm
+    ON im.pro_com = cm.com_id;
+       
 /* Ex. 34. 
    From the following tables, write a SQL query to find those employees whose last name is 'Gabriel' or 'Dosio'. 
    Return emp_idno, emp_fname, emp_lname and emp_dept.
    Sample table: emp_details
 */
+-- 1
+SELECT emp_idno AS "ID No",
+	   emp_fname AS "First Name",
+	   emp_lname AS "Last Name",
+	   emp_dept AS "Department Name"
+  FROM emp_details	
+ WHERE emp_lname = 'Gabriel' 
+    OR emp_lname = 'Dosio'; 
 
+-- 2  
+SELECT emp_idno AS "ID No",
+	   emp_fname AS "First Name",
+	   emp_lname AS "Last Name",
+	   emp_dept AS "Department Name"
+  FROM emp_details	
+ WHERE emp_lname IN ('Gabriel', 'Dosio'); 
+   
 /* Ex. 35. 
    From the following tables, write a SQL query to find the employees who work in department 89 or 63. 
    Return emp_idno, emp_fname, emp_lname and emp_dept.
    Sample table: emp_department
    Sample table: emp_details
 */
+
+SELECT emp_idno AS "ID Number",
+       emp_fname AS "First Name",
+       emp_lname AS "Last Name",
+       emp_dept AS "Department Name"
+  FROM emp_details 
+ WHERE emp_dept IN (89, 63);
 
 /* Ex. 36. 
    From the following tables, write a SQL query to find those employees who work for the department 
@@ -3013,6 +3060,13 @@ SELECT *
    Sample table: emp_details
 */
 
+SELECT emp_fname AS "First Name",
+	   emp_lname AS "Last Name"
+  FROM emp_details 
+ WHERE emp_dept IN (SELECT dpt_code 
+					  FROM emp_department 
+					 WHERE dpt_allotment > 50000);  
+					
 /* Ex. 37. 
    From the following tables, write a SQL query to find the departments where the sanction amount is higher 
    than the average sanction amount of all the departments. 
@@ -3020,6 +3074,13 @@ SELECT *
    Sample table: emp_department
 */
 
+SELECT dpt_code AS "Depatment Code",
+       dpt_name AS "Department Name",
+       dpt_allotment AS "Department Allotment"
+  FROM emp_department 
+ WHERE dpt_allotment > (SELECT AVG(dpt_allotment) 
+						  FROM emp_department); 
+								
 /* Ex. 38. 
    From the following tables, write a SQL query to find the departments where more than two employees work. 
    Return dpt_name.
@@ -3027,10 +3088,266 @@ SELECT *
    Sample table: emp_details
 */
 
+SELECT dpt_name AS "Department Name"
+  FROM emp_department 
+ WHERE dpt_code IN (SELECT emp_dept 
+					  FROM emp_details 
+					 GROUP BY emp_dept 
+					HAVING COUNT(*) > 2);
+						 
 /* Ex. 39. 
    From the following tables, write a SQL query to find the departments where the sanction amount is second lowest. 
    Return emp_fname and emp_lname.
    Sample table: emp_department
    Sample table: emp_details
+*/
+
+SELECT emp_fname AS "First Name",
+	   emp_lname AS "Last Name"
+  FROM emp_details 
+ WHERE emp_dept IN (SELECT dpt_code 
+					  FROM emp_department 
+					 WHERE dpt_allotment = (SELECT MIN(dpt_allotment) 
+											  FROM emp_department 
+											 WHERE dpt_allotment > (SELECT MIN(dpt_allotment) 
+																	  FROM emp_department))); 
+
+																	 
+/* PART 9. FILTERING and SORTING on HR Database. */  
+
+/* Ex. 1. 
+   From the following table, write a SQL query to find those employees whose salary is less than 6000. 
+   Return full name (first and last name), and salary.  
+   Sample table: employees
+*/
+																	 
+/* Ex. 2. 
+   From the following table, write a SQL query to find those employees whose salary is higher than 8000. 
+   Return first name, last name and department number and salary.  
+   Sample table: employees
+*/
+																	 
+/* Ex. 3. 
+   From the following table, write a SQL query to find those employees whose last name is "McEwen". 
+   Return first name, last name and department ID.  
+   Sample table: employees
+*/
+																	 
+/* Ex. 4. 
+   From the following table, write a SQL query to find those employees who have no department number. 
+   Return employee_id, first_name, last_name, email,phone_number,hire_date, job_id, salary,commission_pct,manager_id and department_id.  
+   Sample table: employees
+*/
+
+/* Ex. 5. 
+   From the following table, write a SQL query to find the details of 'Marketing' department. 
+   Return all fields.  
+   Sample table: departments
+*/
+
+/* Ex. 6. 
+   From the following table, write a SQL query to find those employees whose first name does not contain the letter ‘M’. 
+   Sort the result-set in ascending order by department ID. Return full name (first and last name together), hire_date, salary and department_id.  
+   Sample table: employees
+*/
+
+/* Ex. 7. 
+   From the following table, write a SQL query to find those employees who falls in the following criteria : 
+   1. whose salary is in the range of 8000, 12000 (Begin and end values are included.) and get some commission. 
+   2. : those employees who joined before ‘2003-06-05’ and not included in the department number 40, 120 and 70. 
+   Return all fields. 
+   Sample table: employees
+*/
+
+/* Ex. 8. 
+   From the following table, write a SQL query to find those employees who do not earn any commission.
+   Return full name (first and last name), and salary.  
+   Sample table: employees
+*/
+
+/* Ex. 9. 
+   From the following table, write a SQL query to find those employees whose salary is in the range 9000,17000 (Begin and end values are included). 
+   Return full name, contact details and salary.  
+   Sample table: employees
+*/
+
+/* Ex. 10. 
+From the following table, write a SQL query to find those employees whose first name ends with the letter ‘m’. 
+Return the first and last name, and salary.  
+Sample table: employees
+*/	
+
+/* Ex. 11. 
+   From the following table, write a SQL query to find those employees whose salary is not in the range 7000 and 15000 (Begin and end values are included). 
+   Sort the result-set in ascending order by the full name (first and last). Return full name and salary.  
+   Sample table: employees
+*/
+																	 
+/* Ex. 12. 
+   From the following table, write a SQL query to find those employees who were hired during November 5th, 2007 and July 5th, 2009. 
+   Return full name (first and last), job id and hire date. 
+   Sample table: employees
+*/
+																	 
+/* Ex. 13. 
+   From the following table, write a SQL query to find those employees who works either in department 70 or 90. 
+   Return full name (first and last name), department id. 
+   Sample table: employees
+*/
+																	 
+/* Ex. 14. 
+   From the following table, write a SQL query to find those employees who work under a manager. 
+   Return full name (first and last name), salary, and manager ID.  
+   Sample table: employees
+*/
+
+/* Ex. 15. 
+   From the following table, write a SQL query to find those employees who were hired before June 21st, 2002. 
+   Return all fields.  
+   Sample table: employees
+*/
+
+/* Ex. 16. 
+   From the following table, write a SQL query to find those employees whose managers hold the ID 120 or 103 or 145. 
+   Return first name, last name, email, salary and manager ID.  
+   Sample table: employees
+*/
+
+/* Ex. 17. 
+   From the following table, write a SQL query to find those employees whose first name contains the letters D, S, or N. 
+   Sort the result-set in descending order by salary. Return all fields.  
+   Sample table: employees
+*/
+
+/* Ex. 18. 
+   From the following table, write a SQL query to find those employees who earn above 11000 or the seventh character in their phone number is 3. 
+   Sort the result-set in descending order by first name. 
+   Return full name (first name and last name), hire date, commission percentage, email, and telephone separated by '-', and salary.  
+   Sample table: employees
+*/
+
+/* Ex. 19. 
+   From the following table, write a SQL query to find those employees whose first name contains a character ‘s’ in 3rd position. 
+   Return first name, last name and department id. 
+   Sample table : employees
+*/
+
+/* Ex. 20. 
+   From the following table, write a SQL query to find those employees who are working in the departments, 
+   which are not included in the department number 50 or 30 or 80. 
+   Return employee_id, first_name, job_id, department_id.  
+   Sample table : employees
+*/	
+
+/* Ex. 21. 
+   From the following table, write a SQL query to find those employees whose department numbers are included in 30 or 40 or 90. 
+   Return employee id, first name, job id, department id.  
+   Sample table : employees
+*/
+																	 
+/* Ex. 22. 
+   From the following table, write a SQL query to find those employees who worked more than two jobs in the past. 
+   Return employee id.  
+   Sample table : job_history
+*/
+																	 
+/* Ex. 23. 
+   From the following table, write a SQL query to count the number of employees, sum of all salary, 
+   and difference between the highest salary and lowest salary by each job id. 
+   Return job_id, count, sum, salary_difference.  
+   Sample table : employees
+*/
+																	 
+/* Ex. 24. 
+   From the following table, write a SQL query to find each job ids where two or more employees worked for more than 300 days. 
+   Return job id. 
+   Sample table : job_history
+*/
+
+/* Ex. 25. 
+   From the following table, write a SQL query to count the number of cities in each country has. 
+   Return country ID and number of cities.  
+   Sample table : locations
+*/
+
+/* Ex. 26. 
+   From the following table, write a SQL query to count the number of employees worked under each manager. 
+   Return manager ID and number of employees.  
+   Sample table : employees
+*/
+
+/* Ex. 27. 
+   From the following table, write a SQL query to find all jobs. Sort the result-set in descending order by job title. 
+   Return all fields. 
+   Sample table : jobs
+*/
+
+/* Ex. 28. 
+   From the following table, write a SQL query to find all those employees who are either Sales Representative or Salesman. 
+   Return first name, last name and hire date.  
+   Sample table : employees
+*/
+
+/* Ex. 29. 
+   From the following table, write a SQL query to calculate average salary of those employees for each department who get a commission percentage. 
+   Return department id, average salary.  
+   Sample table : employees
+*/
+
+/* Ex. 30. 
+   From the following table, write a SQL query to find those departments where a manager can manage four or more employees. 
+   Return department_id.  
+   Sample table : employees
+*/	
+
+/* Ex. 31. 
+   From the following table, write a SQL query to find those departments where more than ten employees work, who got a commission percentage. 
+   Return department id.  
+   Sample table : employees
+*/
+																	 
+/* Ex. 32. 
+   From the following table, write a SQL query to find those employees who have completed their previous jobs. 
+   Return employee ID, end_date.  
+   Sample table : job_history
+*/
+																	 
+/* Ex. 33. 
+   From the following table, write a SQL query to find those employees who have no commission percentage 
+   and salary within the range 7000, 12000 (Begin and end values are included.) and works in the department number 50. 
+   Return all the fields of employees.  
+   Sample table : employees
+*/
+																	 
+/* Ex. 34. 
+   From the following table, write a SQL query to compute the average salary of each job ID. 
+   Exclude those records where average salary is higher than 8000. 
+   Return job ID, average salary.  
+   Sample table : employees
+*/
+
+/* Ex. 35. 
+   From the following table, write a SQL query to find those job titles where the difference between minimum and maximum salaries is 
+   in the range the range 12000, 18000 (Begin and end values are included.). 
+   Return job_title, max_salary-min_salary.  
+   Sample table : jobs
+*/
+
+/* Ex. 36. 
+   From the following table, write a SQL query to find those employees whose first name or last name starts with the letter ‘D’. 
+   Return first name, last name.  
+   Sample table : employees
+*/
+
+/* Ex. 37. 
+   From the following table, write a SQL query to find details of those jobs where minimum salary exceeds 9000. 
+   Return all the fields of jobs.  
+   Sample table : jobs
+*/
+
+/* Ex. 38. 
+   From the following table, write a SQL query to find those employees who joined after 7th September 1987. 
+   Return all the fields.  
+   Sample table : employees
 */
 
