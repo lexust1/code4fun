@@ -3120,30 +3120,56 @@ SELECT emp_fname AS "First Name",
    Return full name (first and last name), and salary.  
    Sample table: employees
 */
+
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+       salary AS "Salary"
+  FROM employees
+ WHERE salary < 6000;
 																	 
 /* Ex. 2. 
    From the following table, write a SQL query to find those employees whose salary is higher than 8000. 
    Return first name, last name and department number and salary.  
    Sample table: employees
 */
-																	 
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary > 8000;
+
 /* Ex. 3. 
    From the following table, write a SQL query to find those employees whose last name is "McEwen". 
    Return first name, last name and department ID.  
    Sample table: employees
 */
-																	 
+	
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE last_name = 'McEwen';  
+
 /* Ex. 4. 
    From the following table, write a SQL query to find those employees who have no department number. 
    Return employee_id, first_name, last_name, email,phone_number,hire_date, job_id, salary,commission_pct,manager_id and department_id.  
    Sample table: employees
 */
 
+SELECT *
+  FROM employees
+ WHERE department_id IS NULL;
+  
 /* Ex. 5. 
    From the following table, write a SQL query to find the details of 'Marketing' department. 
    Return all fields.  
    Sample table: departments
 */
+
+SELECT *
+  FROM departments
+ WHERE department_name = 'Marketing';  
 
 /* Ex. 6. 
    From the following table, write a SQL query to find those employees whose first name does not contain the letter ‘M’. 
@@ -3151,7 +3177,34 @@ SELECT emp_fname AS "First Name",
    Sample table: employees
 */
 
-/* Ex. 7. 
+-- LIKE
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name NOT LIKE '%M%' 
+ ORDER BY department_id; 
+
+-- SIMILAR TO
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name NOT SIMILAR TO '%M%'
+ ORDER BY department_id; 
+
+-- RegEx
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name !~ '[M]'
+ ORDER BY department_id; 
+ 
+  /* Ex. 7. 
    From the following table, write a SQL query to find those employees who falls in the following criteria : 
    1. whose salary is in the range of 8000, 12000 (Begin and end values are included.) and get some commission. 
    2. : those employees who joined before ‘2003-06-05’ and not included in the department number 40, 120 and 70. 
@@ -3159,47 +3212,111 @@ SELECT emp_fname AS "First Name",
    Sample table: employees
 */
 
+SELECT *
+  FROM employees
+ WHERE (salary BETWEEN 8000 AND 12000
+   AND commission_pct > 0)
+    OR (hire_date < '2003-06-05'
+   AND department_id NOT IN (40, 120, 70));  
+
 /* Ex. 8. 
    From the following table, write a SQL query to find those employees who do not earn any commission.
    Return full name (first and last name), and salary.  
    Sample table: employees
 */
 
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   salary AS "Salary",
+	   commission_pct
+  FROM employees
+ WHERE commission_pct = 0.0;
+     
 /* Ex. 9. 
    From the following table, write a SQL query to find those employees whose salary is in the range 9000,17000 (Begin and end values are included). 
    Return full name, contact details and salary.  
    Sample table: employees
 */
 
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   email AS "Email",
+	   phone_number AS "Phone Number",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary BETWEEN 9000 AND 17000;  
+	    
 /* Ex. 10. 
-From the following table, write a SQL query to find those employees whose first name ends with the letter ‘m’. 
-Return the first and last name, and salary.  
-Sample table: employees
+   From the following table, write a SQL query to find those employees whose first name ends with the letter ‘m’. 
+   Return the first and last name, and salary.  
+   Sample table: employees
 */	
 
+-- LIKE
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary"
+  FROM employees
+ WHERE first_name LIKE '%m';
+  
+-- SIMILAR TO
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary"
+  FROM employees
+ WHERE first_name SIMILAR TO '%m';  
+
+-- RegEx
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary"
+  FROM employees
+ WHERE first_name ~ 'm$';
+  
 /* Ex. 11. 
    From the following table, write a SQL query to find those employees whose salary is not in the range 7000 and 15000 (Begin and end values are included). 
    Sort the result-set in ascending order by the full name (first and last). Return full name and salary.  
    Sample table: employees
 */
-																	 
+
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   salary AS "Salary"
+  FROM employees 
+ WHERE salary NOT BETWEEN 7000 AND 15000
+ ORDER BY "Full Name";  
+  
 /* Ex. 12. 
    From the following table, write a SQL query to find those employees who were hired during November 5th, 2007 and July 5th, 2009. 
    Return full name (first and last), job id and hire date. 
    Sample table: employees
 */
-																	 
+
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   job_id AS "Job ID",
+	   hire_date AS "Hire Date"
+  FROM employees
+ WHERE hire_date BETWEEN '2007-11-05' AND '2009-07-05';  
+  
 /* Ex. 13. 
    From the following table, write a SQL query to find those employees who works either in department 70 or 90. 
    Return full name (first and last name), department id. 
    Sample table: employees
 */
-																	 
+
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   department_id AS "Department ID"
+  FROM employees 
+ WHERE department_id IN (70, 90); 
+
 /* Ex. 14. 
    From the following table, write a SQL query to find those employees who work under a manager. 
    Return full name (first and last name), salary, and manager ID.  
    Sample table: employees
 */
+
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   salary AS "Salary",
+	   manager_id AS "Manager ID"
+  FROM employees
+ WHERE manager_id != 0;
 
 /* Ex. 15. 
    From the following table, write a SQL query to find those employees who were hired before June 21st, 2002. 
@@ -3207,17 +3324,49 @@ Sample table: employees
    Sample table: employees
 */
 
+SELECT *
+  FROM employees
+ WHERE hire_date < '2002-06-21';
+
 /* Ex. 16. 
    From the following table, write a SQL query to find those employees whose managers hold the ID 120 or 103 or 145. 
    Return first name, last name, email, salary and manager ID.  
    Sample table: employees
 */
 
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   email AS "Email",
+	   salary AS "Salary",
+	   manager_ID AS "Manager ID"
+  FROM employees
+ WHERE manager_id IN (120, 103, 145);  
+
 /* Ex. 17. 
    From the following table, write a SQL query to find those employees whose first name contains the letters D, S, or N. 
    Sort the result-set in descending order by salary. Return all fields.  
    Sample table: employees
 */
+
+-- LIKE
+SELECT *
+  FROM employees
+ WHERE first_name LIKE '%D%' 
+    OR first_name LIKE '%S%'
+    OR first_name LIKE '%N%'
+ ORDER BY salary DESC;
+   
+-- SIMILAR TO 
+SELECT *
+  FROM employees
+ WHERE first_name SIMILAR TO '%(D|S|N)%'
+ ORDER BY salary DESC;
+ 
+-- REGEX
+SELECT *
+  FROM employees
+ WHERE first_name ~ '[DSN]'   
+ ORDER BY salary DESC;
 
 /* Ex. 18. 
    From the following table, write a SQL query to find those employees who earn above 11000 or the seventh character in their phone number is 3. 
@@ -3226,12 +3375,69 @@ Sample table: employees
    Sample table: employees
 */
 
+-- LIKE
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   commission_pct AS "Commission, %",
+	   email AS "Email",
+	   REPLACE(phone_number, '.', '-') AS "Phone Number",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary > 11000
+    OR phone_number LIKE '______3%'
+ ORDER BY first_name DESC;  
+
+-- SIMILAR TO
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   commission_pct AS "Commission, %",
+	   email AS "Email",
+	   REPLACE(phone_number, '.', '-') AS "Phone Number",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary > 11000
+    OR phone_number SIMILAR TO '_{6}3%'
+ ORDER BY first_name DESC;  
+
+-- REGEX
+SELECT CONCAT(first_name, ' ', last_name) AS "Full Name",
+	   hire_date AS "Hire Date",
+	   commission_pct AS "Commission, %",
+	   email AS "Email",
+	   REPLACE(phone_number, '.', '-') AS "Phone Number",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary > 11000
+    OR phone_number ~ '^.{6}3'
+ ORDER BY first_name DESC;  
+
 /* Ex. 19. 
    From the following table, write a SQL query to find those employees whose first name contains a character ‘s’ in 3rd position. 
    Return first name, last name and department id. 
    Sample table : employees
 */
 
+-- LIKE
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name LIKE '__s%';  
+
+-- SIMILAR TO
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name SIMILAR TO '_{2}s%';  
+
+-- REGEX
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE first_name ~ '^.{2}s';  
+  
 /* Ex. 20. 
    From the following table, write a SQL query to find those employees who are working in the departments, 
    which are not included in the department number 50 or 30 or 80. 
@@ -3239,17 +3445,36 @@ Sample table: employees
    Sample table : employees
 */	
 
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   job_id AS "Job ID",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE department_id NOT IN (50, 30, 80);  
+  
 /* Ex. 21. 
    From the following table, write a SQL query to find those employees whose department numbers are included in 30 or 40 or 90. 
    Return employee id, first name, job id, department id.  
    Sample table : employees
 */
-																	 
+
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   job_id AS "Job ID",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE department_id IN (30, 40, 90);  
+  
 /* Ex. 22. 
    From the following table, write a SQL query to find those employees who worked more than two jobs in the past. 
    Return employee id.  
    Sample table : job_history
 */
+
+SELECT employee_id AS "Employee ID"
+  FROM job_history
+ GROUP BY employee_id
+HAVING COUNT(*) > 2;  
 																	 
 /* Ex. 23. 
    From the following table, write a SQL query to count the number of employees, sum of all salary, 
@@ -3257,12 +3482,25 @@ Sample table: employees
    Return job_id, count, sum, salary_difference.  
    Sample table : employees
 */
-																	 
+
+SELECT job_id AS "Job ID",
+       COUNT(*) AS "Num of employees",
+       SUM(salary) AS "Sum Salary",
+       MAX(salary) - MIN(salary) AS "Difference in salary"
+  FROM employees
+ GROUP BY job_id;  
+       
 /* Ex. 24. 
    From the following table, write a SQL query to find each job ids where two or more employees worked for more than 300 days. 
    Return job id. 
    Sample table : job_history
 */
+
+SELECT job_id AS "Job ID"
+  FROM job_history 
+ WHERE end_date - start_date > 300
+ GROUP BY job_id
+HAVING COUNT(*) >= 2;  
 
 /* Ex. 25. 
    From the following table, write a SQL query to count the number of cities in each country has. 
@@ -3270,11 +3508,21 @@ Sample table: employees
    Sample table : locations
 */
 
+SELECT country_id AS "Country ID",
+	   COUNT(city) AS "Num of cities"
+  FROM locations
+ GROUP BY country_id;
+
 /* Ex. 26. 
    From the following table, write a SQL query to count the number of employees worked under each manager. 
    Return manager ID and number of employees.  
    Sample table : employees
 */
+
+SELECT manager_id AS "Manager ID",
+	   COUNT(*) AS "Num of employees"
+  FROM employees
+ GROUP BY manager_id;  
 
 /* Ex. 27. 
    From the following table, write a SQL query to find all jobs. Sort the result-set in descending order by job title. 
@@ -3282,11 +3530,21 @@ Sample table: employees
    Sample table : jobs
 */
 
+SELECT *
+  FROM jobs
+ ORDER BY job_title DESC;
+
 /* Ex. 28. 
    From the following table, write a SQL query to find all those employees who are either Sales Representative or Salesman. 
    Return first name, last name and hire date.  
    Sample table : employees
 */
+
+SELECT first_name AS "First Name",
+       last_name AS "Last Name",
+       hire_date AS "Hire Date"
+  FROM employees
+ WHERE job_id IN ('SA_MAN', 'SA_REP');  
 
 /* Ex. 29. 
    From the following table, write a SQL query to calculate average salary of those employees for each department who get a commission percentage. 
@@ -3294,31 +3552,60 @@ Sample table: employees
    Sample table : employees
 */
 
+SELECT department_id AS "Department ID",
+       AVG(salary) AS "Avg. salary"
+  FROM employees
+ WHERE commission_pct > 0.0
+ GROUP BY department_id;
+
 /* Ex. 30. 
    From the following table, write a SQL query to find those departments where a manager can manage four or more employees. 
    Return department_id.  
    Sample table : employees
 */	
 
+SELECT department_id AS "Department ID"
+  FROM employees
+ GROUP BY department_id
+HAVING COUNT(*) >= 4; 
+  
 /* Ex. 31. 
    From the following table, write a SQL query to find those departments where more than ten employees work, who got a commission percentage. 
    Return department id.  
    Sample table : employees
 */
-																	 
+
+SELECT department_id AS "Department ID"
+  FROM employees
+ WHERE commission_pct > 0  
+ GROUP BY department_id
+HAVING COUNT(*) > 10; 
+ 
 /* Ex. 32. 
    From the following table, write a SQL query to find those employees who have completed their previous jobs. 
    Return employee ID, end_date.  
    Sample table : job_history
 */
-																	 
+
+SELECT employee_id AS "Employee ID",
+	   MAX(end_date) AS "End Date"
+  FROM job_history
+ GROUP BY employee_id
+HAVING COUNT(*) > 1;
+
 /* Ex. 33. 
    From the following table, write a SQL query to find those employees who have no commission percentage 
    and salary within the range 7000, 12000 (Begin and end values are included.) and works in the department number 50. 
    Return all the fields of employees.  
    Sample table : employees
 */
-																	 
+
+SELECT *
+  FROM employees
+ WHERE commission_pct = 0
+   AND salary BETWEEN 7000 AND 12000
+   AND department_id =50;
+  
 /* Ex. 34. 
    From the following table, write a SQL query to compute the average salary of each job ID. 
    Exclude those records where average salary is higher than 8000. 
@@ -3326,6 +3613,12 @@ Sample table: employees
    Sample table : employees
 */
 
+SELECT job_id AS "Job ID",
+	   AVG(salary) AS "Average Salary"
+  FROM employees
+ GROUP BY job_id
+HAVING AVG(salary) > 8000;
+   
 /* Ex. 35. 
    From the following table, write a SQL query to find those job titles where the difference between minimum and maximum salaries is 
    in the range the range 12000, 18000 (Begin and end values are included.). 
@@ -3333,17 +3626,48 @@ Sample table: employees
    Sample table : jobs
 */
 
+
+SELECT job_title AS "Job title",
+       max_salary - min_salary AS "Difference in salary"
+  FROM jobs
+ WHERE max_salary - min_salary BETWEEN 12000 AND 18000;
+ 
 /* Ex. 36. 
    From the following table, write a SQL query to find those employees whose first name or last name starts with the letter ‘D’. 
    Return first name, last name.  
    Sample table : employees
 */
 
+-- LIKE
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE first_name LIKE 'D%'
+    OR last_name LIKE 'D%';
+
+-- SIMILAR TO
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE first_name SIMILAR TO 'D%'
+    OR last_name SIMILAR TO 'D%';
+   
+-- REGEX
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE first_name ~ '^D'
+    OR last_name ~ '^D';   
+   
 /* Ex. 37. 
    From the following table, write a SQL query to find details of those jobs where minimum salary exceeds 9000. 
    Return all the fields of jobs.  
    Sample table : jobs
 */
+
+SELECT *
+  FROM jobs
+ WHERE min_salary > 9000;
 
 /* Ex. 38. 
    From the following table, write a SQL query to find those employees who joined after 7th September 1987. 
@@ -3351,3 +3675,12 @@ Sample table: employees
    Sample table : employees
 */
 
+SELECT *
+  FROM employees
+ WHERE hire_date > '1987-09-07';  
+   
+SELECT *
+  FROM employees;
+ --LIMIT 20;
+ 
+ 
