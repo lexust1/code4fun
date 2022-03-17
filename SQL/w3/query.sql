@@ -3865,12 +3865,13 @@ SELECT *
    Sample table: employees
 */
 
-SELECT *
-  FROM employees;
- --LIMIT 20; 
- 					 
-SELECT *
-  FROM departments;
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   hire_date AS "Hire Date"
+  FROM employees
+ WHERE department_id = (SELECT department_id 
+						  FROM employees 
+						 WHERE first_name = 'Clara');
 
 /* Ex. 14. 
    From the following tables, write a SQL query to find those employees who work in a department where the employee’s first name contains a letter 'T'. 
@@ -3878,6 +3879,33 @@ SELECT *
    Sample table: employees
 */
 
+-- LIKE
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE department_id IN (SELECT department_id 
+					       FROM employees 
+					      WHERE first_name LIKE '%T%');
+
+-- SIMILAT TO
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE department_id IN (SELECT department_id 
+					       FROM employees 
+					      WHERE first_name SIMILAR TO '%T%');
+
+--REGEX 
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees
+ WHERE department_id IN (SELECT department_id 
+					       FROM employees 
+					      WHERE first_name ~ 'T');
+	   				
 /* Ex. 15. 
    From the following tables, write a SQL query to find those employees who earn more than the average salary and work 
    in a department with any employee whose first name contains a character a 'J'. 
@@ -3885,6 +3913,16 @@ SELECT *
    Sample table: employees
 */
  
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+	   salary AS "Salary"
+  FROM employees
+ WHERE department_id IN (SELECT department_id 
+ 						   FROM employees 
+ 						  WHERE first_name LIKE '%J%')
+   AND salary > (SELECT AVG(salary) 
+  				   FROM employees);
+								     
 /* Ex. 16. 
    From the following table, write a SQL query to find those employees whose department located at 'Toronto'. 
    Return first name, last name, employee ID, job ID.   
@@ -3893,23 +3931,65 @@ SELECT *
    Sample table: locations
 */
 
+SELECT e.first_name AS "First Name",
+	   e.last_name AS "Last Name",
+	   e.employee_id AS "Employee ID",
+	   e.job_id AS "Job ID"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+ WHERE l.city = 'Toronto';    
+  				  
+
 /* Ex. 17. 
    From the following table, write a SQL query to find those employees whose salary is lower than any salary of those employees whose job title is ‘MK_MAN’. 
    Return employee ID, first name, last name, job ID.   
    Sample table: employees
 */
 
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+       last_name AS "Last Name",
+       job_id AS "Job ID"
+  FROM employees
+ WHERE salary < ANY (SELECT salary 
+					   FROM employees 
+					  WHERE job_id = 'MK_MAN'); 
+	
+ 
 /* Ex. 18. 
    From the following table, write a SQL query to find those employees whose salary is lower than any salary of those employees whose job title is 'MK_MAN'. 
    Exclude employees of Job title ‘MK_MAN’. Return employee ID, first name, last name, job ID.   
    Sample table: employees
 */
- 
+
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+       last_name AS "Last Name",
+       job_id AS "Job ID"
+  FROM employees
+ WHERE salary < ANY (SELECT salary 
+ 					   FROM employees 
+ 					   WHERE job_id = 'MK_MAN')
+   AND job_id != 'MK_MAN';  
+
 /* Ex. 19. 
    From the following table, write a SQL query to find those employees whose salary is more than any salary of those employees whose job title is 'PU_MAN'. 
    Exclude job title 'PU_MAN'. Return employee ID, first name, last name, job ID.   
    Sample table: employees
 */
+
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+       last_name AS "Last Name",
+       job_id AS "Job ID"
+  FROM employees
+ WHERE salary > ANY (SELECT salary 
+ 					   FROM employees 
+ 					  WHERE job_id = 'PU_MAN')
+   AND job_id != 'PU_MAN';  
 
 /* Ex. 20. 
    From the following table, write a SQL query to find those employees whose salary is more than average salary of any department. 
@@ -3917,12 +3997,34 @@ SELECT *
    Sample table: employees
 */
 
+SELECT employee_id AS "Employee ID",
+	   first_name AS "First Name",
+       last_name AS "Last Name",
+       job_id AS "Job ID"
+  FROM employees
+ WHERE salary > ANY (SELECT AVG(salary) 
+					   FROM employees 
+					  GROUP BY department_id);  
+  
 /* Ex. 21. 
    From the following table, write a SQL query to find any existence of those employees whose salary exceeds 3700. 
    Return first name, last name and department ID.   
    Sample table: employees
 */
- 
+-- 1
+SELECT first_name AS "First Name",
+       last_name AS "Last Name",
+       department_id AS "Department ID"
+  FROM employees
+ WHERE salary > 3700; 
+
+-- 2
+SELECT first_name AS "First Name",
+       last_name AS "Last Name",
+       department_id AS "Department ID"
+  FROM employees
+ WHERE EXISTS (SELECT * FROM employees WHERE salary > 3700); 
+  				 
 /* Ex. 22. 
    From the following table, write a SQL query to find total salary of those departments where at least one employee works. 
    Return department ID, total salary.   
@@ -3930,11 +4032,26 @@ SELECT *
    Sample table: departments
 */
 
+-- 
+SELECT department_id AS "Department ID",
+       SUM(salary) AS "Total Salary"
+  FROM employees 
+ GROUP BY department_id;
+
 /* Ex. 23. 
    Write a query to display the employee id, name ( first name and last name ) and the job id column with a modified title SALESMAN 
    for those employees whose job title is ST_MAN and DEVELOPER for whose job title is IT_PROG.   
    Sample table: employees
 */
+
+SELECT employee_id AS "Employee ID",
+	   CONCAT(first_name, ' ', last_name) AS "Name",
+	   CASE job_id
+	       WHEN 'ST_MAN' THEN 'SALESMAN'
+	       WHEN 'IT_PROG' THEN 'DEVELOPER'
+	       ELSE job_id
+	   END AS "Job ID"
+FROM employees;
 
 /* Ex. 24. 
    Write a query to display the employee id, name ( first name and last name ), salary and the SalaryStatus column with a title HIGH and LOW 
@@ -3942,11 +4059,30 @@ SELECT *
    Sample table: employees
 */  
 
+SELECT employee_id AS "Employee ID",
+	   CONCAT(first_name, ' ', last_name) AS "Name",
+	   salary AS "Salary",
+	   CASE 
+	       WHEN salary > (SELECT AVG(salary) FROM employees) THEN 'HIGH'
+	       ELSE 'LOW'
+	   END AS "SalaryStatus"
+  FROM employees;
+   
 /* Ex. 25. 
    Write a query to display the employee id, name ( first name and last name ), SalaryDrawn, AvgCompare (salary - the average salary of all employees) 
    and the SalaryStatus column with a title HIGH and LOW respectively for those employees whose salary is more than and less than the average salary of all employees.   
    Sample table: employees
 */
+
+SELECT employee_id AS "Employye ID",
+	   CONCAT(first_name, ' ', last_name) AS "Name",
+	   salary AS "SalaryDrawn",
+	   salary - (SELECT AVG(salary) FROM employees) AS "AvgCompare",
+	   CASE
+	       WHEN salary > (SELECT AVG(salary) FROM employees) THEN 'HIGH'
+	       ELSE 'LOW'
+	   END AS "SalaryStatus"
+  FROM employees;
  
 /* Ex. 26. 
    From the following table, write a SQL query to find all those departments where at least one or more employees work.Return department name.   
@@ -3954,6 +4090,17 @@ SELECT *
    Sample table: departments
 */
 
+  
+SELECT *
+  FROM employees;
+ --LIMIT 20; 
+ 					 
+SELECT *
+  FROM departments;	
+
+SELECT *
+  FROM locations;
+ 
 /* Ex. 27. 
    From the following tables, write a SQL query to find those employees who work in departments located at 'United Kingdom'. 
    Return first name.   
