@@ -4085,22 +4085,19 @@ SELECT employee_id AS "Employye ID",
   FROM employees;
  
 /* Ex. 26. 
-   From the following table, write a SQL query to find all those departments where at least one or more employees work.Return department name.   
+   From the following table, write a SQL query to find all those departments where at least one or more employees work.
+   Return department name.   
    Sample table: employees
    Sample table: departments
 */
 
-  
-SELECT *
-  FROM employees;
- --LIMIT 20; 
- 					 
-SELECT *
-  FROM departments;	
+SELECT d.department_name AS "Department Name"
+  FROM departments AS d
+  JOIN employees AS e
+    ON d.department_id = e.department_id 
+ GROUP BY department_name
+HAVING COUNT(*) >= 1; 
 
-SELECT *
-  FROM locations;
- 
 /* Ex. 27. 
    From the following tables, write a SQL query to find those employees who work in departments located at 'United Kingdom'. 
    Return first name.   
@@ -4110,19 +4107,56 @@ SELECT *
    Sample table: countries
 */
 
+SELECT e.first_name AS "First Name"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+  JOIN countries AS c
+    ON l.country_id = c.country_id 
+ WHERE c.country_name = 'United Kingdom';     
+
 /* Ex. 28. 
    From the following table, write a SQL query to find those employees who earn more than average salary and who work in any of the 'IT' departments. 
    Return last name.   
    Sample table: employees
    Sample table: departments
 */
- 
+
+-- LIKE
+SELECT last_name AS "Last Name"
+  FROM employees
+ WHERE salary > (SELECT AVG(salary) 
+ 				   FROM employees)
+   AND department_id IN (SELECT department_id 
+  						   FROM departments 
+  						  WHERE department_name LIKE '%IT%');
+  						 
+-- REGEX
+SELECT last_name AS "Last Name"
+  FROM employees
+ WHERE salary > (SELECT AVG(salary) 
+ 				   FROM employees)
+   AND department_id IN (SELECT department_id 
+  						   FROM departments 
+  						  WHERE department_name ~ 'IT');
+
 /* Ex. 29. 
    From the following table, write a SQL query to find all those employees who earn more than an employee whose last name is 'Ozer'. 
    Sort the result in ascending order by last name. 
    Return first name, last name and salary.   
    Sample table: employees
 */
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary"
+  FROM employees
+ WHERE salary > (SELECT salary 
+ 				   FROM employees 
+ 				  WHERE last_name = 'Ozer')
+ ORDER BY last_name;  
 
 /* Ex. 30. 
    From the following tables, write a SQL query to find those employees who work under a manager based in ‘US’. 
@@ -4132,12 +4166,44 @@ SELECT *
    Sample table: locations
 */
 
+-- JOIN
+SELECT e.first_name AS "First Name",
+	   e.last_name AS "Last Name"
+  FROM employees AS e	
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id 
+ WHERE country_id = 'US';    
+
+-- Subquery
+SELECT first_name AS "First Name",
+ 	   last_name AS "Last Name"
+  FROM employees
+ WHERE employee_id IN (SELECT employee_id 
+  						 FROM employees 
+  						WHERE department_id IN (SELECT department_id 
+  											      FROM departments 
+  											     WHERE location_id IN (SELECT location_id 
+  											  						     FROM locations 
+  											  						    WHERE country_id = 'US')));  
+
 /* Ex. 31. 
    From the following tables, write a SQL query to find those employees whose salary is greater than 50% of their department's total salary bill. 
    Return first name, last name.   
    Sample table : employees
 */
- 
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name"
+  FROM employees AS e1
+  JOIN (SELECT department_id, 
+  			   0.5 * SUM(salary) AS sum_05
+  	      FROM employees 
+  	     GROUP BY department_id) AS e2
+    ON e1.department_id = e2.department_id
+ WHERE e1.salary > sum_05;
+ 											  						   
 /* Ex. 32. 
    From the following tables, write a SQL query to find those employees who are managers. 
    Return all the fields of employees table.   
@@ -4145,11 +4211,32 @@ SELECT *
    Sample table: departments
 */
 
+-- JOIN
+SELECT *
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+ WHERE e.employee_id = d.manager_id;
+
+-- Subquery
+SELECT *
+  FROM employees 
+ WHERE employee_id IN (SELECT manager_id 
+						 FROM departments);
+ 
 /* Ex. 33. 
-   From the following table, write a SQL query to find those employees who manage a department. Return all the fields of employees table.   
+   From the following table, write a SQL query to find those employees who manage a department. 
+   Return all the fields of employees table.   
    Sample table: employees
    Sample table: departments
 */
+
+SELECT *
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+ WHERE e.employee_id = d.manager_id
+   AND d.manager_id != 0;
 
 /* Ex. 34. 
    From the following table, write a SQL query to find those employees who get such a salary, which is the maximum of salaried employee, 
@@ -4160,6 +4247,21 @@ SELECT *
    Sample table: locations
 */
  
+SELECT e.employee_id AS "Employee ID",
+	   e.first_name AS "First Name",
+	   e.last_name AS "Last Name",
+	   e.salary AS "Salary",
+	   d.department_name AS "Department name",
+	   l.city AS "City"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id 
+ WHERE salary = (SELECT MAX(salary) 
+				   FROM employees 
+				  WHERE hire_date BETWEEN '2002-01-01' AND '2003-12-31');
+
 /* Ex. 35. 
    From the following tables, write a SQL query to find those departments, located in the city ‘London’. 
    Return department ID, department name.   
@@ -4167,12 +4269,35 @@ SELECT *
    Sample table: locations
 */
 
+SELECT department_id AS "Department ID",
+	   department_name AS "Department Name"
+  FROM departments
+ WHERE location_id = (SELECT location_id 
+						FROM locations
+					   WHERE city = 'London');  
+
 /* Ex. 36. 
    From the following table, write a SQL query to find those employees who earn more than the average salary. Sort the result-set in descending order by salary. 
    Return first name, last name, salary, and department ID.   
    Sample table: employees
 */
 
+					  
+	   
+SELECT *
+  FROM employees;
+ --LIMIT 20; 
+ 					 
+SELECT *
+  FROM departments;	
+
+SELECT *
+  FROM locations;
+
+SELECT *
+  FROM countries; 
+  
+ 					  
 /* Ex. 37. 
    From the following table, write a SQL query to find those employees who earn more than the maximum salary of a department of ID 40. 
    Return first name, last name and department ID.   
