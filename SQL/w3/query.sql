@@ -4282,8 +4282,158 @@ SELECT department_id AS "Department ID",
    Sample table: employees
 */
 
-					  
-	   
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary > (SELECT AVG(salary) FROM employees)
+ ORDER BY salary DESC;  
+ 					  
+/* Ex. 37. 
+   From the following table, write a SQL query to find those employees who earn more than the maximum salary of a department of ID 40. 
+   Return first name, last name and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary > (SELECT MAX(salary) 
+				   FROM employees 
+				  WHERE department_id = 40);
+
+/* Ex. 38. 
+   From the following table, write a SQL query to find departments for a particular location. The location matches the location of the department of ID 30. 
+   Return department name and department ID.  
+   Sample table: departments
+*/
+
+SELECT department_name AS "Department Name",
+       department_id AS "Department ID"
+  FROM departments
+ WHERE location_id = (SELECT location_id 
+						FROM departments 
+					   WHERE department_id = 30);
+
+/* Ex. 39. 
+   From the following table, write a SQL query to find those employees who work in that department where the employee works of ID 201. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE department_id = (SELECT department_id 
+					      FROM employees 
+					     WHERE employee_id = 201);
+			  
+/* Ex. 40. 
+   From the following table, write a SQL query to find those employees whose salary matches to the salary of the employee who works in that department of ID 40. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary = (SELECT salary 
+				   FROM employees 
+				  WHERE department_id = 40);					    
+
+/* Ex. 41. 
+   From the following table, write a SQL query to find those employees who work in the department 'Marketing'. 
+   Return first name, last name and department ID.   
+   Sample table: employees
+   Sample table: departments
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE department_id = (SELECT department_id 
+						  FROM departments 
+						 WHERE department_name = 'Marketing'); 
+
+/* Ex. 42. 
+   From the following table, write a SQL query to find those employees who earn more than the minimum salary of a department of ID 40. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary > (SELECT MIN(salary) 
+				   FROM employees 
+				  WHERE department_id = 40);
+
+	
+/* Ex. 43. 
+   From the following table, write a SQL query to find those employees who joined after the employee whose ID is 165. 
+   Return first name, last name and hire date.   
+   Sample table: employees
+*/ 
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   hire_date AS "Hire Date"
+  FROM employees
+ WHERE hire_date > (SELECT hire_date 
+					  FROM employees 
+					 WHERE employee_id = 165);  
+									 
+/* Ex. 44. 
+   From the following table, write a SQL query to find those employees who earn less than the minimum salary of a department of ID 70. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary < (SELECT MIN(salary) 
+				   FROM employees 
+				  WHERE department_id = 70);
+
+/* Ex. 45. 
+   From the following table, write a SQL query to find those employees who earn less than the average salary, and 
+   work at the department where the employee 'Laura' (first name) works. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+*/
+
+SELECT first_name AS "First Name",
+	   last_name AS "Last Name",
+	   salary AS "Salary",
+	   department_id AS "Department ID"
+  FROM employees
+ WHERE salary < (SELECT AVG(salary) 
+ 				   FROM employees)
+   AND department_id = (SELECT department_id 
+  						  FROM employees 
+  						 WHERE first_name = 'Laura'); 
+				 
+/* Ex. 46. 
+   From the following tables, write a SQL query to find those employees whose department is located in the city 'London'. 
+   Return first name, last name, salary, and department ID.   
+   Sample table: employees
+   Sample table: locations
+   Sample table: departments
+*/
+ 
+  											
 SELECT *
   FROM employees;
  --LIMIT 20; 
@@ -4296,72 +4446,7 @@ SELECT *
 
 SELECT *
   FROM countries; 
-  
- 					  
-/* Ex. 37. 
-   From the following table, write a SQL query to find those employees who earn more than the maximum salary of a department of ID 40. 
-   Return first name, last name and department ID.   
-   Sample table: employees
-*/
- 
-/* Ex. 38. 
-   From the following table, write a SQL query to find departments for a particular location. The location matches the location of the department of ID 30. 
-   Return department name and department ID.  
-   Sample table: departments
-*/
-
-/* Ex. 39. 
-   From the following table, write a SQL query to find those employees who work in that department where the employee works of ID 201. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-*/
-
-/* Ex. 40. 
-   From the following table, write a SQL query to find those employees whose salary matches to the salary of the employee who works in that department of ID 40. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-*/
- 
-/* Ex. 41. 
-   From the following table, write a SQL query to find those employees who work in the department 'Marketing'. 
-   Return first name, last name and department ID.   
-   Sample table: employees
-   Sample table: departments
-*/
-
-/* Ex. 42. 
-   From the following table, write a SQL query to find those employees who earn more than the minimum salary of a department of ID 40. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-*/
-
-/* Ex. 43. 
-   From the following table, write a SQL query to find those employees who joined after the employee whose ID is 165. 
-   Return first name, last name and hire date.   
-   Sample table: employees
-*/ 
-
-/* Ex. 44. 
-   From the following table, write a SQL query to find those employees who earn less than the minimum salary of a department of ID 70. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-*/
-
-/* Ex. 45. 
-   From the following table, write a SQL query to find those employees who earn less than the average salary, and 
-   work at the department where the employee 'Laura' (first name) works. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-*/
-
-/* Ex. 46. 
-   From the following tables, write a SQL query to find those employees whose department is located in the city 'London'. 
-   Return first name, last name, salary, and department ID.   
-   Sample table: employees
-   Sample table: locations
-   Sample table: departments
-*/
- 
+  				 
 /* Ex. 47. 
    From the following tables, write a SQL query to find the city of the employee of ID 134. Return city.   
    Sample table: locations
