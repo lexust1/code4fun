@@ -4433,20 +4433,17 @@ SELECT first_name AS "First Name",
    Sample table: departments
 */
  
-  											
-SELECT *
-  FROM employees;
- --LIMIT 20; 
- 					 
-SELECT *
-  FROM departments;	
+SELECT e.first_name AS "First Name",
+	   e.last_name AS "Last Name",
+	   e.salary AS "Salary",
+	   e.department_id AS "Department ID"  
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+ WHERE l.city = 'London';   
 
-SELECT *
-  FROM locations;
-
-SELECT *
-  FROM countries; 
-  				 
 /* Ex. 47. 
    From the following tables, write a SQL query to find the city of the employee of ID 134. Return city.   
    Sample table: locations
@@ -4454,14 +4451,70 @@ SELECT *
    Sample table: employees
 */
 
+SELECT l.city AS "City" 
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+ WHERE e.employee_id = 134; 
+  					  				 
 /* Ex. 48. 
    From the following tables, write a SQL query to find those departments where maximum salary is 7000 and above. 
-   The employees worked in those departments have already completed one or more jobs. Return all the fields of the departments.   
+   The employees worked in those departments have already completed one or more jobs. 
+   Return all the fields of the departments.   
    Sample table: departments
    Sample table: employees
    Sample table: job_history
 */
+-- JOIN
+SELECT DISTINCT d.*
+  FROM departments AS d
+  JOIN (SELECT department_id 
+  		  FROM employees 
+  		 GROUP BY department_id 
+  		HAVING MAX(salary) >= 7000) AS e
+    ON d.department_id = e.department_id
+  JOIN (SELECT department_id 
+  		  FROM job_history 
+  		  WHERE employee_id IN (SELECT employee_id 
+  		     					  FROM employees 
+  		     					  GROUP BY employee_id 
+  		     					  HAVING COUNT(*) >= 1)) AS j 
+    ON d.department_id = j.department_id;
 
+-- Subquery   			 
+SELECT departments.*
+  FROM departments
+ WHERE department_id IN (SELECT department_id 
+ 						   FROM employees 
+ 						  GROUP BY department_id 
+ 						 HAVING MAX(salary) >= 7000)
+   AND department_id IN (SELECT department_id 
+  						   FROM job_history 
+  						  WHERE employee_id IN (SELECT employee_id 
+  						 						  FROM employees 
+  						 						 GROUP BY employee_id 
+  						 						HAVING COUNT(*) >= 1));
+  						 					
+-- JOIN + CTE 						 					
+WITH e AS (SELECT department_id 
+  		     FROM employees 
+  	        GROUP BY department_id 
+  	       HAVING MAX(salary) >= 7000),  
+     j AS (SELECT department_id 
+  		 	 FROM job_history 
+  		    WHERE employee_id IN (SELECT employee_id 
+  		     	  			        FROM employees 
+  		     			           GROUP BY employee_id 
+  		     				      HAVING COUNT(*) >= 1))  	
+SELECT DISTINCT d.*
+  FROM departments AS d
+  JOIN e
+    ON d.department_id = e.department_id
+  JOIN j 
+    ON d.department_id = j.department_id;
+   
 /* Ex. 49. 
    From the following tables, write a SQL query to find those departments where starting salary is at least 8000. 
    Return all the fields of departments.   
@@ -4469,11 +4522,27 @@ SELECT *
    Sample table: employees
 */
  
+SELECT *
+  FROM departments
+ WHERE department_id IN (SELECT department_id 
+						   FROM employees 
+						  GROUP BY department_id 
+						 HAVING MIN(salary) >= 8000);
+						
 /* Ex. 50. 
    From the following table, write a SQL query to find those managers who supervise four or more employees. 
    Return manager name, department ID.   
    Sample table : employees
 */
+						
+SELECT CONCAT(e1.first_name, ' ', last_name) AS "Manager Name",
+	   department_id AS "Department ID"
+  FROM employees AS e1
+  JOIN (SELECT manager_id 
+          FROM employees 
+         GROUP BY manager_id 
+        HAVING COUNT(*) >= 4) AS e2
+    ON e1.employee_id = e2.manager_id;
 
 /* Ex. 51. 
    From the following table, write a SQL query to find those employees who worked as a 'Sales Representative' in the past. 
@@ -4483,12 +4552,86 @@ SELECT *
    Sample table: job_history
 */
 
+-- It's a strange question because we shoud find employes but select columns from the job-table. It is more logical to show 
+-- the employee-table. Otherwise we don't need to use the job-history table and employees-table.
+
+SELECT *
+  FROM employees 
+ WHERE employee_id IN (SELECT employee_id 
+						 FROM job_history 
+						WHERE job_id = (SELECT job_id 
+										  FROM jobs 
+										 WHERE job_title = 'Sales Representative'));
+-- 
+SELECT *
+  FROM jobs 
+ WHERE job_title = 'Sales Representative';
+
+-- 
+SELECT j.*
+  FROM jobs AS j
+  JOIN job_history AS jh
+    ON j.job_id = jh.job_id
+  JOIN employees AS e
+    ON j.job_id = e.job_id
+ WHERE e.employee_id IN (SELECT employee_id 
+						 FROM job_history 
+						WHERE job_id = (SELECT job_id 
+										  FROM jobs 
+										 WHERE job_title = 'Sales Representative'));
+										
 /* Ex. 52. 
    From the following table, write a SQL query to find those employees who earn second-lowest salary of all the employees. 
    Return all the fields of employees.   
    Sample table : employees
-*/
+*/  
  
+-- Rank 1
+SELECT *
+  FROM (SELECT *, 
+               DENSE_RANK () OVER (ORDER BY salary) AS salary_rank
+          FROM employees) AS emp_rank
+  WHERE salary_rank = 2;  	
+ 
+ -- Rank 2
+SELECT *
+  FROM (SELECT *, 
+               RANK () OVER (ORDER BY salary) AS salary_rank
+          FROM employees) AS emp_rank
+  WHERE salary_rank = 2;   
+
+-- Subquery 1
+SELECT *
+  FROM employees
+ WHERE salary > (SELECT MIN(salary) FROM employees)
+ ORDER BY salary
+ LIMIT 2; 
+										
+-- Subquery 2									
+SELECT *
+  FROM employees
+ WHERE salary = (SELECT MIN(salary) 
+				   FROM (SELECT salary 
+				           FROM employees 
+				          WHERE salary != (SELECT MIN(salary) 
+				                             FROM employees)) AS e1);			                            
+  
+-- Offset 1
+SELECT *
+  FROM employees
+ ORDER BY salary
+OFFSET 1
+ LIMIT 2;
+
+-- Offset 2
+SELECT * 
+  FROM employees 
+ WHERE salary = (SELECT DISTINCT salary 
+				   FROM employees 
+				  ORDER BY salary 
+				 OFFSET 1 
+				  LIMIT 1);  
+         
 /* Ex. 53. 
    From the following table, write a SQL query to find those departments managed by ‘Susan’. 
    Return all the fields of departments.  
@@ -4496,12 +4639,49 @@ SELECT *
    Sample table: employees
 */
 
+-- Subquery				 
+SELECT *
+  FROM departments
+ WHERE department_id IN (SELECT department_id 
+						   FROM employees 
+						  WHERE first_name = 'Susan');
+-- JOIN						 
+SELECT *
+  FROM departments AS d
+  JOIN employees AS e
+    ON d.department_id = e.department_id
+ WHERE e.first_name = 'Susan';
+  
 /* Ex. 54. 
    From the following table, write a SQL query to find those employees who earn highest salary in a department. 
    Return department ID, employee name, and salary.   
    Sample table: employees
 */
 
+-- Subquery
+SELECT department_id AS "Department_ID",
+	   CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name",
+	   salary AS "Salary"
+  FROM employees AS e
+ WHERE salary = (SELECT MAX(salary) 
+                   FROM employees 
+                  WHERE e.department_id = department_id);
+ 
+SELECT MAX(salary), department_id FROM employees GROUP BY department_id;  
+
+-- JOIN
+  WITH max_sal AS (SELECT MAX(salary) AS max_salary, 
+  						  department_id 
+  				     FROM employees 
+  				    GROUP BY department_id)
+SELECT e.department_id AS "Department_ID",
+	   CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name",
+	   e.salary AS "Salary"
+  FROM employees AS e
+  JOIN max_sal
+    ON e.department_id = max_sal.department_id
+   AND e.salary = max_sal.max_salary;
+ 
 /* Ex. 55. 
    From the following table, write a SQL query to find those employees who did not have any job in the past. 
    Return all the fields of employees.   
@@ -4509,5 +4689,28 @@ SELECT *
    Sample table: job_history
 */  
 
+SELECT *
+  FROM employees
+ WHERE employee_id NOT IN (SELECT employee_id 
+						     FROM job_history); 
+  
+SELECT *
+  FROM employees;
+ --LIMIT 20; 
+ 					 
+SELECT *
+  FROM departments;	
+ 
+SELECT *
+  FROM locations;
+
+SELECT *
+  FROM countries; 
+ 
+SELECT *
+  FROM job_history;
+ 
+SELECT *
+  FROM jobs;   
 
 
