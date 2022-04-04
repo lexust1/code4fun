@@ -4901,6 +4901,153 @@ SELECT e.first_name AS "First Name",
    Return the first name of the employee and manager.  
    Sample table: employees
 */
+
+SELECT e1.first_name AS "Employee First Name",
+	   e2.first_name AS "Manager First Name"
+  FROM employees AS e1
+  JOIN employees AS e2
+    ON e1.manager_id = e2.employee_id;  
+  
+/* Ex. 12. 
+   From the following tables, write a SQL query to find those employees who work in a department where the employee of last name 'Taylor' works. 
+   Return first name, last name and department ID.  
+   Sample table: employees
+*/ 
+
+-- 1
+SELECT e1.first_name AS "First Name",
+	   e1.last_name AS "Last Name",
+	   e1.department_id AS "Department ID"
+  FROM employees AS e1
+ RIGHT JOIN (SELECT * FROM employees WHERE last_name = 'Taylor') AS e2
+    ON e1.department_id = e2.department_id;
+
+-- 2   
+SELECT e1.first_name AS "First Name",
+	   e1.last_name AS "Last Name",
+	   e1.department_id AS "Department ID"
+  FROM employees AS e1
+  JOIN employees AS e2
+    ON e1.department_id = e2.department_id
+ WHERE e2.last_name = 'Taylor';
+        
+/* Ex. 13. 
+   From the following tables, write a SQL query to find those employees who joined between 1st January 1993 and 31 August 1997. 
+   Return job title, department name, employee name, and joining date of the job.  
+   Sample table: job_history
+   Sample table: employees
+   Sample table: jobs
+   Sample table: departments
+*/ 
+
+SELECT j.job_title AS "Job Title",
+	   d.department_name AS "Department Name",
+	   CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name",
+	   jh.start_date AS "Start Date"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN jobs AS j  
+    ON e.job_id = j.job_id
+  JOIN job_history AS jh
+    ON e.employee_id = jh.employee_id
+ WHERE jh.start_date BETWEEN '1993-01-01' AND '1997-08-31';
+ 
+/* Ex. 14. 
+   From the following tables, write a SQL query to find the difference between maximum salary of the job and salary of the employees. 
+   Return job title, employee name, and salary difference. 
+   Sample table: employees
+   Sample table: jobs
+*/
+ 
+SELECT j.job_title AS "Job Title",
+	   CONCAT(e.first_name, ' ', e.last_name),
+	   j.max_salary - e.salary AS "Salary difference"
+  FROM employees AS e
+  JOIN jobs AS j
+    ON e.job_id = j.job_id;
+ 
+/* Ex. 15. 
+   From the following table, write a SQL query to compute the average salary, number of employees received commission in that department. 
+   Return department name, average salary and number of employees.  
+   Sample table: employees
+   Sample table : departments
+*/ 
+
+SELECT d.department_name AS "Department Name",
+	   ROUND(AVG(e.salary), 2) AS "Average Salary",
+	   COUNT(e.*) AS "Num of emp."
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id 
+ GROUP BY d.department_id;
+       
+/* Ex. 16. 
+   From the following tables, write a SQL query to compute the difference between maximum salary and salary of all the employees 
+   who works the department of ID 80. 
+   Return job title, employee name and salary difference.  
+   Sample table: employees
+   Sample table: jobs
+*/  
+
+SELECT j.job_title AS "Job Title",
+	   CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name",
+	   j.max_salary - e.salary AS "Salary diff."
+  FROM jobs AS j
+  JOIN employees AS e
+    ON j.job_id = e.job_id
+ WHERE e.department_id = 80;
+ 
+/* Ex. 17. 
+   From the following table, write a SQL query to find the name of the country, city, and departments, which are running there.  
+   Sample table: countries
+   Sample table: locations
+   Sample table: departments
+*/
+
+SELECT c.country_name AS "Country Name",
+	   l.city AS "City",
+	   d.department_name AS "Depatment Name"
+  FROM countries AS c
+  JOIN locations AS l
+    ON c.country_id = l.country_id
+  JOIN departments AS d
+    ON l.location_id = d.location_id;
+
+/* Ex. 18. 
+   From the following tables, write a SQL query to find the department name and the full name (first and last name) of the manager.  
+   Sample table: departments
+   Sample table: employees
+*/ 
+
+SELECT d.department_name AS "Department Name",
+	   CONCAT(e.first_name, ' ', e.last_name)
+  FROM departments AS d
+  JOIN employees AS e
+    ON d.manager_id = e.employee_id;   
+      
+/* Ex. 19. 
+   From the following table, write a SQL query to compute the average salary of employees for each job title.  
+   Sample table: employees
+   Sample table: jobs
+*/ 
+
+SELECT j.job_title AS "Job title",
+	   ROUND(AVG(e.salary), 2) AS "Average Salary"
+  FROM employees AS e
+  JOIN jobs AS j
+    ON e.job_id = j.job_id
+ GROUP BY j.job_title;
+   
+/* Ex. 20. 
+   From the following table, write a SQL query to find those employees who earn $12000 and above. 
+   Return employee ID, starting date, end date, job ID and department ID.  
+   Sample table: employees
+   Sample table: job_history
+*/   
+
+
+    
      
 SELECT * 
   FROM employees;
@@ -4922,71 +5069,7 @@ SELECT *
   FROM jobs;     
  
 SELECT *
-  FROM job_grades;   
-  
-/* Ex. 12. 
-   From the following tables, write a SQL query to find those employees who work in a department where the employee of last name 'Taylor' works. 
-   Return first name, last name and department ID.  
-   Sample table: employees
-*/ 
-
-/* Ex. 13. 
-   From the following tables, write a SQL query to find those employees who joined between 1st January 1993 and 31 August 1997. 
-   Return job title, department name, employee name, and joining date of the job.  
-   Sample table: job_history
-   Sample table: employees
-   Sample table: jobs
-   Sample table: departments
-*/ 
-
-/* Ex. 14. 
-   From the following tables, write a SQL query to find the difference between maximum salary of the job and salary of the employees. 
-   Return job title, employee name, and salary difference. 
-   Sample table: employees
-   Sample table: jobs
-*/
- 
-/* Ex. 15. 
-   From the following table, write a SQL query to compute the average salary, number of employees received commission in that department. 
-   Return department name, average salary and number of employees.  
-   Sample table: employees
-   Sample table : departments
-*/ 
-
-/* Ex. 16. 
-   From the following tables, write a SQL query to compute the difference between maximum salary and salary of all the employees 
-   who works the department of ID 80. 
-   Return job title, employee name and salary difference.  
-   Sample table: employees
-   Sample table: jobs
-*/  
- 
-/* Ex. 17. 
-   From the following table, write a SQL query to find the name of the country, city, and departments, which are running there.  
-   Sample table: countries
-   Sample table: locations
-   Sample table: departments
-*/
- 
-/* Ex. 18. 
-   From the following tables, write a SQL query to find the department name and the full name (first and last name) of the manager.  
-   Sample table: departments
-   Sample table: employees
-*/ 
-
-/* Ex. 19. 
-   From the following table, write a SQL query to compute the average salary of employees for each job title.  
-   Sample table: employees
-   Sample table: jobs
-*/ 
-
-/* Ex. 20. 
-   From the following table, write a SQL query to find those employees who earn $12000 and above. 
-   Return employee ID, starting date, end date, job ID and department ID.  
-   Sample table: employees
-   Sample table: job_history
-*/   
- 
+  FROM job_grades;
 /* Ex. 21. 
    From the following tables, write a SQL query to find those departments where at least 2 employees work. Group the result set 
    on country name and city. 
