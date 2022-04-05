@@ -5047,8 +5047,169 @@ SELECT j.job_title AS "Job title",
 */   
 
 
+SELECT e.employee_id AS "Employee ID",
+	   jh.start_date AS "Starting Date",
+	   jh.end_date AS "End Date",
+	   e.job_id AS "Job ID",
+	   e.department_id AS "Department ID"
+  FROM employees AS e
+  JOIN job_history AS jh
+    ON e.employee_id = jh.employee_id
+ WHERE e.salary >= 12000;   
+
+/* Ex. 21. 
+   From the following tables, write a SQL query to find those departments where at least 2 employees work. Group the result set 
+   on country name and city. 
+   Return country name, city, and number of departments.  
+   Sample table: countries
+   Sample table: locations
+   Sample table: employees
+   Sample table: departments
+*/
+
+SELECT c.country_name AS "Country Name",
+	   l.city AS "City",
+	   COUNT(*) AS "Number of departments"
+  FROM countries AS c
+  JOIN locations AS l
+    ON c.country_id = l.country_id
+  JOIN departments AS d
+    ON l.location_id = d.location_id 
+  JOIN (SELECT department_id 
+  		  FROM employees 
+  		 GROUP BY department_id 
+  		HAVING COUNT(*) >= 2) AS e
+    ON d.department_id = e.department_id
+ GROUP BY c.country_name, l.city;
+
+/* Ex. 22. 
+   From the following tables, write a SQL query to find the department name, full name (first and last name) of the manager and their city.  
+   Sample table: employees
+   Sample table: departments
+   Sample table: locations
+*/ 
+
+SELECT d.department_name AS "Department Name",
+	   CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+	   l.city AS "City"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.employee_id = d.manager_id  
+  JOIN locations AS l
+    ON d.location_id = l.location_id; 
+
+/* Ex. 23. 
+   From the following tables, write a SQL query to compute the number of days worked by employees in a department of ID 80. 
+   Return employee ID, job title, number of days worked.  
+   Sample table: jobs
+   Sample table: job_history
+*/ 
+
+SELECT jh.employee_id AS "Employee ID",
+	   j.job_title AS "Job Title",
+	   jh.end_date - jh.start_date AS "Number of days worked"
+  FROM jobs AS j
+  JOIN job_history AS jh
+    ON j.job_id = jh.job_id
+ WHERE jh.department_id = 80;   
+ 
+/* Ex. 24. 
+   From the following tables, write a SQL query to find full name (first and last name), and salary of those employees who work 
+   in any department located in 'London' city.  
+   Sample table: departments
+   Sample table: locations
+   Sample table: employees
+*/
+
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+	   e.salary AS "Salary"
+  FROM employees AS e
+  JOIN departments AS d
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+ WHERE l.city = 'London';    
+   
+/* Ex. 25. 
+   From the following tables, write a SQL query to find full name (first and last name), job title, starting and ending date of last jobs of 
+   employees who worked without a commission percentage.  
+   Sample table: jobs
+   Sample table: job_history
+   Sample table: employees
+*/ 
+
+-- JOIN + Subquery
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+	   j.job_title AS "Job Title",
+	   jh.start_date AS "Starting Date",
+	   jh.end_date AS "Ending Date"
+  FROM employees AS e	   
+  JOIN (SELECT *
+  		  FROM (SELECT *, 
+                       ROW_NUMBER () OVER (PARTITION BY employee_id 
+               						           ORDER BY end_date DESC) AS date_rank
+          		  FROM job_history) AS rank
+		 WHERE date_rank = 1) AS jh
+    ON e.employee_id = jh.employee_id 
+  JOIN jobs AS j
+    ON jh.job_id = j.job_id
+ WHERE e.commission_pct = 0;  
+
+
+-- JOIN + CTE
+WITH jh AS (SELECT *
+  		  	  FROM (SELECT *, 
+                           ROW_NUMBER () OVER (PARTITION BY employee_id 
+               						           ORDER BY end_date DESC) AS date_rank
+          		      FROM job_history) AS rank
+		     WHERE date_rank = 1)
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+	   j.job_title AS "Job Title",
+	   jh.start_date AS "Starting Date",
+	   jh.end_date AS "Ending Date"
+  FROM employees AS e	   
+  JOIN jh
+    ON e.employee_id = jh.employee_id 
+  JOIN jobs AS j
+    ON jh.job_id = j.job_id
+ WHERE e.commission_pct = 0;  		     
+
+/* Ex. 26. 
+   From the following tables, write a SQL query to find the department name, department ID, and number of employees in each department.  
+   Sample table: departments
+   Sample table: employees
+*/  
+
+SELECT d.department_name AS "Department Name",
+	   d.department_id AS "Department ID",
+	   COUNT(*) AS "Num of employees"
+  FROM departments AS d
+  JOIN employees AS e
+    ON d.department_id = e.department_id
+ GROUP BY d.department_name, d.department_id;   
     
-     
+/* Ex. 27. 
+   From the following tables, write a SQL query to find the full name (first and last name) of the employee with ID and name of 
+   the country presently where he/she is working.  
+   Sample table: countries
+   Sample table: locations
+   Sample table: employees
+   Sample table: departments
+*/
+
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+	   e.employee_id AS "Employee ID",
+	   c.country_name AS "Country"
+  FROM employees AS e
+  JOIN departments AS d 
+    ON e.department_id = d.department_id
+  JOIN locations AS l
+    ON d.location_id = l.location_id
+  JOIN countries AS c
+    ON l.country_id = c.country_id;
+
+
+
 SELECT * 
   FROM employees;
  --LIMIT 20; 
@@ -5069,59 +5230,4 @@ SELECT *
   FROM jobs;     
  
 SELECT *
-  FROM job_grades;
-/* Ex. 21. 
-   From the following tables, write a SQL query to find those departments where at least 2 employees work. Group the result set 
-   on country name and city. 
-   Return country name, city, and number of departments.  
-   Sample table: countries
-   Sample table: locations
-   Sample table: employees
-   Sample table: departments
-*/
- 
-/* Ex. 22. 
-   From the following tables, write a SQL query to find the department name, full name (first and last name) of the manager and their city.  
-   Sample table: employees
-   Sample table: departments
-   Sample table: locations
-*/ 
-
-/* Ex. 23. 
-   From the following tables, write a SQL query to compute the number of days worked by employees in a department of ID 80. 
-   Return employee ID, job title, number of days worked.  
-   Sample table: jobs
-   Sample table: job_history
-*/ 
-
-/* Ex. 24. 
-   From the following tables, write a SQL query to find full name (first and last name), and salary of those employees who work 
-   in any department located in 'London' city.  
-   Sample table: departments
-   Sample table: locations
-   Sample table: employees
-*/
- 
-/* Ex. 25. 
-   From the following tables, write a SQL query to find full name (first and last name), job title, starting and ending date of last jobs of 
-   employees who worked without a commission percentage.  
-   Sample table: jobs
-   Sample table: job_history
-   Sample table: employees
-*/ 
-
-/* Ex. 26. 
-   From the following tables, write a SQL query to find the department name, department ID, and number of employees in each department.  
-   Sample table: departments
-   Sample table: employees
-*/  
- 
-/* Ex. 27. 
-   From the following tables, write a SQL query to find the full name (first and last name) of the employee with ID and name of 
-   the country presently where he/she is working.  
-   Sample table: countries
-   Sample table: locations
-   Sample table: employees
-   Sample table: departments
-*/
- 
+  FROM job_grades; 
