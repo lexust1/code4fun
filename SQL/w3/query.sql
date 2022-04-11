@@ -5207,27 +5207,531 @@ SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
     ON d.location_id = l.location_id
   JOIN countries AS c
     ON l.country_id = c.country_id;
+ 
+   
+/* PART 12. SQL UNION */  
+ 
+/* Ex. 1. 
+   From the following tables, write a SQL query to find all salespersons and customer who located in 'London' city. 
+   Sample table: Salesman
+   Sample table: Customer
+*/ 
 
+(SELECT name AS "Name", 
+       'Salesman' AS "Table Name"
+   FROM salesman
+  WHERE city = 'London')
+  
+  UNION ALL
+  
+(SELECT cust_name,
+	   'Customer'
+   FROM customer
+  WHERE city = 'London')
+  
+/* Ex. 2. 
+   From the following tables, write a SQL query to find distinct salesperson and their cities. 
+   Return salesperson ID and city. 
+   Sample table: Salesman
+   Sample table: Customer
+*/ 
+ 
+SELECT salesman_id AS "Salesman ID",
+	   city AS "City"
+  FROM salesman;	   
+  
+/* Ex. 3. 
+   From the following tables, write a SQL query to find all those salespersons and customers who involved in inventory management system. 
+   Return salesperson ID, customer ID. 
+   Sample table: orders
+   Sample table: customer
+*/ 
+  
+(SELECT customer_id AS "Customer ID", 
+   	    salesman_id AS "Salesman_ID"
+   FROM customer)
+ 
+  UNION 
+ 
+(SELECT customer_id,
+	    salesman_id
+   FROM orders);	 
+ 
+/* Ex. 4. 
+   From the following table, write a SQL query to find those salespersons generated the largest and smallest orders on each date. 
+   Return salesperson ID, name, order no., highest on/ lowest on, order date. 
+   Sample table: Salesman
+   Sample table: Orders
+*/  
 
+-- JOIN 
+(SELECT o.salesman_id AS "Salesperson ID",
+	    s.name AS "Name",
+        o.ord_no AS "Order No",
+        o.ord_date AS "Order Date",
+        o.purch_amt AS "The largest/lowest order",
+        'MAX' AS "MAX/MIN"
+   FROM orders AS o
+   JOIN salesman AS s
+     ON o.salesman_id = s.salesman_id
+   JOIN (SELECT ord_date, MAX(purch_amt) AS max_purch FROM orders GROUP BY ord_date) AS od
+     ON o.ord_date = od.ord_date
+    AND o.purch_amt = od.max_purch)
+    
+  UNION 											
+											
+(SELECT o.salesman_id,
+	    s.name,
+        o.ord_no,
+        o.ord_date,
+        o.purch_amt,
+        'MIN'
+   FROM orders AS o
+   JOIN salesman AS s
+     ON o.salesman_id = s.salesman_id
+   JOIN (SELECT ord_date, MIN(purch_amt) AS min_purch FROM orders GROUP BY ord_date) AS od
+     ON o.ord_date = od.ord_date
+    AND o.purch_amt = od.min_purch); 
+											   
+-- JOIN + CTE + DENSE_RANK 
+   WITH max_purch_amt AS (SELECT *,  
+	 					         DENSE_RANK () OVER (PARTITION BY ord_date ORDER BY purch_amt DESC) AS amt_rank_max
+	 			            FROM orders
+	 			            JOIN salesman 
+	 			           USING (salesman_id)), 
+	    min_purch_amt AS (SELECT *,  
+	 					         DENSE_RANK () OVER (PARTITION BY ord_date ORDER BY purch_amt) AS amt_rank_min
+	 			            FROM orders
+	 			            JOIN salesman 
+	 			           USING (salesman_id))	           
+(SELECT salesman_id AS "Salesperson ID",
+	    name AS "Name",
+        ord_no AS "Order No",
+        ord_date AS "Order Date",
+        purch_amt AS "The largest/lowest order",
+        'MAX' AS "MAX/MIN"
+   FROM max_purch_amt 
+  WHERE amt_rank_max = 1) 
 
+ UNION
+
+(SELECT salesman_id,  
+        name, 
+        ord_no, 
+        ord_date, 
+        purch_amt, 
+        'MIN'
+   FROM min_purch_amt 
+  WHERE amt_rank_min = 1) 
+   
+/* Ex. 5. 
+   From the following tables, write a SQL query to find those salespersons who generated the largest and smallest orders on each date. 
+   Sort the result-set on 3rd field. 
+   Return salesperson ID, name, order no., highest on/lowest on, order date. 
+   Sample table: Salesman
+   Sample table: Orders
+*/ 
+
+(SELECT o.salesman_id AS "Salesperson ID",
+	    s.name AS "Name",
+        o.ord_no AS "Order No",
+        o.ord_date AS "Order Date",
+        o.purch_amt AS "The largest/lowest order",
+        'MAX' AS "MAX/MIN"
+   FROM orders AS o
+   JOIN salesman AS s
+     ON o.salesman_id = s.salesman_id
+   JOIN (SELECT ord_date, MAX(purch_amt) AS max_purch FROM orders GROUP BY ord_date) AS od
+     ON o.ord_date = od.ord_date
+    AND o.purch_amt = od.max_purch)
+    
+  UNION 											
+											
+(SELECT o.salesman_id,
+	    s.name,
+        o.ord_no,
+        o.ord_date,
+        o.purch_amt,
+        'MIN'
+   FROM orders AS o
+   JOIN salesman AS s
+     ON o.salesman_id = s.salesman_id
+   JOIN (SELECT ord_date, MIN(purch_amt) AS min_purch FROM orders GROUP BY ord_date) AS od
+     ON o.ord_date = od.ord_date
+    AND o.purch_amt = od.min_purch)
+  ORDER BY 3; 
+											   
+-- JOIN + CTE + DENSE_RANK 
+   WITH max_purch_amt AS (SELECT *,  
+	 					         DENSE_RANK () OVER (PARTITION BY ord_date ORDER BY purch_amt DESC) AS amt_rank_max
+	 			            FROM orders
+	 			            JOIN salesman 
+	 			           USING (salesman_id)), 
+	    min_purch_amt AS (SELECT *,  
+	 					         DENSE_RANK () OVER (PARTITION BY ord_date ORDER BY purch_amt) AS amt_rank_min
+	 			            FROM orders
+	 			            JOIN salesman 
+	 			           USING (salesman_id))	           
+(SELECT salesman_id AS "Salesperson ID",
+	    name AS "Name",
+        ord_no AS "Order No",
+        ord_date AS "Order Date",
+        purch_amt AS "The largest/lowest order",
+        'MAX' AS "MAX/MIN"
+   FROM max_purch_amt 
+  WHERE amt_rank_max = 1) 
+
+ UNION
+
+(SELECT salesman_id,  
+        name, 
+        ord_no, 
+        ord_date, 
+        purch_amt, 
+        'MIN'
+   FROM min_purch_amt 
+  WHERE amt_rank_min = 1) 
+  ORDER BY "Order No";
+  
+/* Ex.6. 
+   From the following table, write a SQL query to find those salespersons who have same cities where customer lives as well as do not have 
+   customers in their cities and indicate it by ‘NO MATCH’. Sort the result set on 2nd column (i.e. name) in descending order. 
+   Return salesperson ID, name, customer name, commission.  
+   Sample table: Salesman
+   Sample table: Customer
+*/ 
+
+   WITH match_city AS (SELECT s.salesman_id, 
+   							  s.name, 
+   							  c.cust_name, 
+   							  s.commission 
+   						 FROM salesman AS s 
+   						 JOIN customer AS c 
+   						USING (city)),
+        no_match_city AS (SELECT s.salesman_id, 
+        						 s.name, 
+        						 c.cust_name, 
+        						 s.commission 
+	 					    FROM salesman AS s 
+	 					    LEFT OUTER JOIN customer AS c 
+	 					   USING (city) 
+	 					   WHERE c.customer_id IS NULL)
+(SELECT salesman_id AS "Salesperson_ID",
+	    name AS "Name",
+	    cust_name AS "Customer Name",
+	    commission AS "Commision"
+   FROM match_city )	   
+  
+  UNION
+
+(SELECT salesman_id,
+	    name,
+	    'NO MATCH',
+	    commission
+   FROM no_match_city)
+  ORDER BY 2 DESC;  
+ 
+/* Ex. 7. 
+   From the following tables, write a SQL query that appends strings to the selected fields, indicating whether a specified city of any 
+   salesperson was matched to the city of any customer. 
+   Return salesperson ID, name, city, MATCHED/NO MATCH.  
+   Sample table: Salesman
+   Sample table: Customer
+*/ 
+
+ -- UNION
+(SELECT s.salesman_id AS "Salesman ID", 
+		s.name AS "Name", 
+		city AS "City", 
+		'MATCHED' AS "MATCHED/NO MATCH" 
+   FROM salesman AS s
+   LEFT OUTER JOIN customer AS c
+  USING (city)
+  WHERE c.customer_id IS NOT NULL)
+ 
+  UNION
+  
+(SELECT s.salesman_id,
+        s.name,
+        city,
+        'NO MATCH'
+   FROM salesman AS s
+   LEFT OUTER JOIN customer AS c
+  USING (city)
+  WHERE c.customer_id IS NULL);
+
+-- CASE
+SELECT salesman_id AS "Salesman ID", 
+	   name AS "Name", 
+	   city AS "City",
+	   CASE
+	   	   WHEN city IN (SELECT city FROM customer) THEN 'MATCHED'
+	   	   ELSE 'NO MATCH'
+	   END AS "MATCHE/NO MATCH"	   
+  FROM salesman;	   
+
+/* Ex. 8. 
+   From the following table, write a SQL query to create a union of two queries that shows the customer id, cities, and ratings of all customers. 
+   Those with a rating of 300 or greater will have the words 'High Rating', while the others will have the words 'Low Rating'.
+   Sample table: Customer
+*/  
+
+-- UNION
+(SELECT customer_id AS "Customer ID",
+	    city AS "City",
+	    grade AS "Grade",
+	    'High Rating' AS "Rating"
+   FROM customer
+  WHERE grade >= 300)
+	    
+  UNION	
+
+(SELECT customer_id,
+	    city,
+	    grade,
+	    'Low Rating'
+   FROM	customer
+  WHERE grade < 300);
+ 
+-- CASE
+SELECT customer_id AS "Customer ID",
+	   city AS "City",
+	   grade AS "Grade",
+	   CASE
+	   	   WHEN grade >= 300 THEN 'High Rating'
+	   	   ELSE 'Low Rating'
+	   END AS "Rating"
+  FROM customer
+ WHERE grade IS NOT NULL;	   
+											   
+/* Ex. 9.  
+   From the following table, write a SQL query to find those salesperson and customer where more than one order executed. 
+   Sort the result-set on 2nd field. 
+   Return ID, name.  
+   Sample table: Customer
+   Sample table: salesman 
+   Sample table: order
+*/
+
+(SELECT s.salesman_id AS "ID",
+        s.name AS "Name" 
+   FROM salesman AS s
+   JOIN orders AS o
+     ON s.salesman_id = o.salesman_id
+  GROUP BY s.salesman_id, s.name
+ HAVING COUNT(*) > 1)
+ 
+  UNION
+
+(SELECT c.customer_id,
+	    c.cust_name
+   FROM customer AS c
+   JOIN orders AS o
+     ON c.customer_id = o.customer_id 
+  GROUP BY c.customer_id, c.cust_name
+ HAVING COUNT(*) > 1)
+  
+  ORDER BY 2;  
+ 
+/* PART 13. SQL VIEW */  
+ 
+/* Ex. 1. 
+   From the following table, create a view for those salespersons belong to the city 'New York'. 
+   Sample table: salesman
+*/ 
+
+CREATE VIEW sm_in_ny AS 
 SELECT * 
-  FROM employees;
- --LIMIT 20; 
- 					 
-SELECT *
-  FROM departments;	
+  FROM salesman
+ WHERE city = 'New York'; 
  
 SELECT *
-  FROM locations;
+  FROM sm_in_ny;
+ 
+/* Ex. 2. 
+   1. From the following table, create a view for all salespersons. 
+   Return salesperson ID, name, and city. 
+   Sample table: salesman
+   2. Now UPDATE the city name which salesman_id is '5007'.
+*/ 
+ 
+-- 1
+CREATE VIEW sm AS
+SELECT salesman_id,
+	   name,
+	   city
+  FROM salesman;
+ 
+SELECT *
+  FROM sm;
+ 
+-- 2 
+UPDATE sm
+   SET city = 'London'
+ WHERE salesman_id = 5007;    
+ 
+SELECT *
+  FROM sm;
+ 
+/* Ex. 3. 
+   From the following table, create a view to find the salespersons of the city 'New York'.
+   Sample table: salesman
+*/ 
+
+DROP VIEW sm_in_ny;
+ 
+CREATE OR REPLACE VIEW sm_in_ny AS 
+SELECT * 
+  FROM salesman
+ WHERE city = 'New York'; 
+ 
+SELECT *
+  FROM sm_in_ny;
+ 
+/* Ex. 4. 
+   From the following table, create a view to count the number of customers in each grade. 
+   Sample table: customer
+*/  
+
+ 
+   
+SELECT * 
+  FROM salesman
+ LIMIT 20; 
 
 SELECT *
-  FROM countries; 
+  FROM customer; 
  
 SELECT *
-  FROM job_history;
+  FROM orders; 
+  
  
-SELECT *
-  FROM jobs;     
+/* Ex. 5. 
+   From the following table, create a view to count the number of unique customer, compute average and total purchase 
+   amount of customer orders by each date.
+   Sample table : orders
+*/ 
+
+/* Ex.6. 
+   From the following tables, create a view to get the salesperson and customer by name. 
+   Return order name, purchase amount, salesperson ID, name, customer name.
+   Sample table: salesman
+   Sample table: customer
+   Sample table: orders
+*/ 
  
-SELECT *
-  FROM job_grades; 
+/* Ex. 7. 
+   From the following tables, create a view to find the salesperson who handles a customer who makes the highest order of a day. 
+   Return order date, salesperson ID, name.
+   Sample table: salesman
+   Sample table: orders
+*/ 
+ 
+/* Ex. 8. 
+   From the following tables, create a view to find the salesperson who handles the customer with the highest order, 
+   at least 3 times on a day. 
+   Return salesperson ID and name.
+   Sample table: customer
+   Sample table: elitsalesman
+*/  
+ 
+/* Ex. 9. 
+   From the following table, create a view to find all the customers who have the highest grade. 
+   Return all the fields of customer.
+   Sample table: customer
+*/ 
+
+/* Ex. 10. 
+   From the following table, create a view to count number of the salesperson in each city. 
+   Return city, number of salespersons.
+   Sample table: salesman
+*/ 
+ 
+/* Ex. 11. 
+   From the following table, create a view to compute average purchase amount and total purchase amount for each salesperson. 
+   Return name, average purchase and total purchase amount. (Assume all names are unique).
+   Sample table: salesman
+   Sample table: orders
+*/ 
+ 
+/* Ex. 12. 
+   From the following tables, create a view to find those salespeople who handle more than one customer. 
+   Return all the fields of salesperson.
+   Sample table: salesman
+   Sample table: customer
+*/ 
+ 
+/* Ex. 13. 
+   From the following tables, create a view that shows all matches of customers with salesperson such that at least 
+   one customer in the city of customer served by a salesperson in the city of the salesperson.
+   Sample table: salesman
+   Sample table: customer
+*/ 
+
+/* Ex. 14. 
+   From the following table, create a view to get number of orders in each day. Return order date and number of orders.
+   Sample table: orders
+*/ 
+ 
+/* Ex. 15. 
+   From the following tables, create a view to find the salespersons who issued orders on October 10th, 2012. 
+   Return all the fields of salesperson.
+   Sample table: salesman
+   Sample table: orders
+*/ 
+ 
+/* Ex. 16. 
+   From the following table, create a view to find the salespersons who issued orders on either August 17th, 2012 or October 10th, 2012. 
+   Return salesperson ID, order number and customer ID.
+   Sample table: orders
+*/  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ---
+ 
+ 
+ /* PART 1. SQL VIEW */  
+ 
+/* Ex. 1. 
+   
+*/ 
+
+/* Ex. 2. 
+   
+*/ 
+ 
+/* Ex. 3. 
+   
+*/ 
+ 
+/* Ex. 4. 
+   
+*/  
+
+/* Ex. 5. 
+   
+*/ 
+
+/* Ex.6. 
+   
+*/ 
+ 
+/* Ex. 7. 
+   
+*/ 
+ 
+/* Ex. 8. 
+   
+*/  
+ 
+/* Ex. 9. 
+   
+*/ 
+
+/* Ex. 10. 
