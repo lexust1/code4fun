@@ -5593,18 +5593,14 @@ SELECT *
    Sample table: customer
 */  
 
- 
-   
-SELECT * 
-  FROM salesman
- LIMIT 20; 
+CREATE OR REPLACE VIEW count_grade AS
+SELECT COUNT(*), 
+	   grade
+  FROM customer
+ GROUP BY grade;
 
-SELECT *
-  FROM customer; 
- 
-SELECT *
-  FROM orders; 
-  
+SELECT * 
+  FROM count_grade;
  
 /* Ex. 5. 
    From the following table, create a view to count the number of unique customer, compute average and total purchase 
@@ -5612,6 +5608,17 @@ SELECT *
    Sample table : orders
 */ 
 
+CREATE OR REPLACE VIEW agg_orders AS
+SELECT COUNT(*),
+	   AVG(purch_amt),
+	   SUM(purch_amt),
+	   ord_date
+  FROM orders
+ GROUP BY ord_date;
+
+SELECT *
+  FROM agg_orders;  
+ 
 /* Ex.6. 
    From the following tables, create a view to get the salesperson and customer by name. 
    Return order name, purchase amount, salesperson ID, name, customer name.
@@ -5620,13 +5627,61 @@ SELECT *
    Sample table: orders
 */ 
  
+CREATE OR REPLACE VIEW join_tables AS
+SELECT o.ord_no,
+	   o.purch_amt,
+	   s.salesman_id,
+	   s.name,
+	   c.cust_name
+  FROM orders AS o
+  JOIN customer AS c
+    ON o.customer_id = c.customer_id
+  JOIN salesman AS s
+    ON o.salesman_id = s.salesman_id; 
+    
+SELECT * 
+  FROM join_tables;
+ 
 /* Ex. 7. 
    From the following tables, create a view to find the salesperson who handles a customer who makes the highest order of a day. 
    Return order date, salesperson ID, name.
    Sample table: salesman
    Sample table: orders
 */ 
+
+-- JOIN + DENSE_RANK 
+CREATE OR REPLACE VIEW highest_orders AS
+SELECT o.ord_date,
+	   o.salesman_id,
+	   s.name
+  FROM (SELECT *, 
+  			   DENSE_RANK () OVER (PARTITION BY ord_date ORDER BY purch_amt DESC) AS purch_amt_rank 
+  		  FROM orders) AS o
+  JOIN salesman AS s
+    ON o.salesman_id = s.salesman_id
+ WHERE purch_amt_rank = 1; 
+    
+SELECT *
+  FROM highest_orders;
+
+-- JOIN1
+CREATE OR REPLACE VIEW highest_orders AS
+SELECT o.ord_date,
+	   o.salesman_id,
+	   s.name
+  FROM orders AS o
+  JOIN salesman AS s
+    ON o.salesman_id = s.salesman_id
+  JOIN (SELECT ord_date, 
+  	           MAX(purch_amt) AS max_purch_amt 
+  	      FROM orders 
+  	     GROUP BY ord_date) AS max_ord
+    ON o.ord_date = max_ord.ord_date
+   AND o.purch_amt = max_ord.max_purch_amt;
  
+SELECT *
+  FROM highest_orders;
+
 /* Ex. 8. 
    From the following tables, create a view to find the salesperson who handles the customer with the highest order, 
    at least 3 times on a day. 
@@ -5634,6 +5689,17 @@ SELECT *
    Sample table: customer
    Sample table: elitsalesman
 */  
+ 
+
+SELECT * 
+  FROM salesman
+ LIMIT 20; 
+
+SELECT *
+  FROM customer; 
+ 
+SELECT *
+  FROM orders;  
  
 /* Ex. 9. 
    From the following table, create a view to find all the customers who have the highest grade. 
