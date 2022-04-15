@@ -5687,31 +5687,49 @@ SELECT *
    at least 3 times on a day. 
    Return salesperson ID and name.
    Sample table: customer
-   Sample table: elitsalesman
+   Sample table: elitsalesman (highest_orders view in my case)
 */  
- 
 
-SELECT * 
-  FROM salesman
- LIMIT 20; 
+CREATE OR REPLACE VIEW highest_orders_3 AS 
+SELECT DISTINCT salesman_id,
+	   name
+  FROM highest_orders 
+ WHERE salesman_id IN (SELECT salesman_id 
+						 FROM highest_orders 
+						GROUP BY salesman_id 
+					   HAVING COUNT(*) >= 3);
 
 SELECT *
-  FROM customer; 
- 
-SELECT *
-  FROM orders;  
- 
+  FROM highest_orders_3;
+  
 /* Ex. 9. 
    From the following table, create a view to find all the customers who have the highest grade. 
    Return all the fields of customer.
    Sample table: customer
 */ 
 
+CREATE OR REPLACE VIEW highest_grade AS
+SELECT *
+  FROM customer
+ WHERE grade = (SELECT MAX(grade) FROM customer);
+
+SELECT *
+  FROM highest_grade;
+ 
 /* Ex. 10. 
    From the following table, create a view to count number of the salesperson in each city. 
    Return city, number of salespersons.
    Sample table: salesman
 */ 
+
+CREATE OR REPLACE VIEW salesperson_in_city AS 
+SELECT city,
+	   COUNT(*)
+  FROM salesman
+ GROUP BY city;
+
+SELECT *
+  FROM salesperson_in_city; 
  
 /* Ex. 11. 
    From the following table, create a view to compute average purchase amount and total purchase amount for each salesperson. 
@@ -5720,12 +5738,36 @@ SELECT *
    Sample table: orders
 */ 
  
+CREATE OR REPLACE VIEW purch_for_salesman AS
+SELECT ROUND(AVG(purch_amt), 2) AS avg_purch,
+	   ROUND(SUM(purch_amt), 2) AS sum_purch,
+	   name
+  FROM orders
+  JOIN salesman
+ USING (salesman_id)
+ GROUP BY name;
+
+SELECT *
+  FROM purch_for_salesman;
+   
 /* Ex. 12. 
    From the following tables, create a view to find those salespeople who handle more than one customer. 
    Return all the fields of salesperson.
    Sample table: salesman
    Sample table: customer
 */ 
+
+CREATE OR REPLACE VIEW customer_by_salesman AS
+SELECT s.*
+  FROM salesman AS s
+  JOIN (SELECT salesman_id 
+  	      FROM customer 
+  	     GROUP BY salesman_id 
+  	    HAVING COUNT(*) > 1) AS c
+    ON s.salesman_id = c.salesman_id;
+   
+SELECT *
+  FROM customer_by_salesman; 
  
 /* Ex. 13. 
    From the following tables, create a view that shows all matches of customers with salesperson such that at least 
@@ -5734,34 +5776,534 @@ SELECT *
    Sample table: customer
 */ 
 
+CREATE OR REPLACE VIEW match_cities AS
+SELECT *
+  FROM salesman
+  JOIN customer
+ USING (salesman_id, city); 
+    
+SELECT *
+  FROM match_cities;
+
 /* Ex. 14. 
    From the following table, create a view to get number of orders in each day. Return order date and number of orders.
    Sample table: orders
 */ 
- 
+
+CREATE OR REPLACE VIEW orders_by_days AS
+SELECT ord_date,
+	   COUNT(*)
+  FROM orders
+ GROUP BY ord_date;
+
+SELECT *
+  FROM orders_by_days;
+
 /* Ex. 15. 
    From the following tables, create a view to find the salespersons who issued orders on October 10th, 2012. 
    Return all the fields of salesperson.
    Sample table: salesman
    Sample table: orders
 */ 
- 
+
+CREATE OR REPLACE VIEW salesman_12_10_10 AS
+SELECT s.*
+  FROM salesman AS s
+  JOIN (SELECT * FROM orders WHERE ord_date = '2012-10-10') AS o
+	ON s.salesman_id = o.salesman_id;
+
+SELECT *
+  FROM salesman_12_10_10;
+
 /* Ex. 16. 
    From the following table, create a view to find the salespersons who issued orders on either August 17th, 2012 or October 10th, 2012. 
    Return salesperson ID, order number and customer ID.
    Sample table: orders
 */  
  
+CREATE OR REPLACE VIEW salesman_for_dates AS
+SELECT salesman_id,
+	   ord_no,
+	   customer_id
+  FROM orders
+ WHERE ord_date IN ('2012-08-17', '2012-10-10');
+
+SELECT *
+  FROM salesman_for_dates;
  
  
+/* PART 14. Movie database */ 
+
+/* PART 14.1. Basic queries */ 
  
+/* Ex. 1. 
+   From the following table, write a SQL query to find the name and year of the movies. 
+   Return movie title, movie release year. 
+   Sample table: movie
+*/ 
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Release Year"
+  FROM movie;	   
+
+/* Ex. 2. 
+   From the following table, write a SQL query to find when the movie ‘American Beauty’ released. 
+   Return movie release year.  
+   Sample table: movie
+*/ 
  
+SELECT mov_year AS "Movie Release Year"
+  FROM movie
+ WHERE mov_title = 'American Beauty';
+
+/* Ex. 3. 
+   From the following table, write a SQL query to find the movie, which was made in the year 1999. 
+   Return movie title.  
+   Sample table: movie
+*/ 
  
+SELECT mov_title AS "Movie Title"
+  FROM movie
+ WHERE mov_year = 1999;
+
+/* Ex. 4. 
+   From the following table, write a SQL query to find those movies, which was made before 1998. 
+   Return movie title.  
+   Sample table: movie
+*/  
+
+SELECT mov_title AS "Movie Title"
+  FROM movie
+ WHERE mov_year < 1998;
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find the name of all reviewers and movies together in a single list.
+   Sample table: movie
+   Sample table: reviewer
+*/ 
+
+-- AS ONE COLUMN
+(SELECT mov_title AS "Name of movies and reviewers"
+   FROM movie)
+  
+  UNION 
+
+(SELECT rev_name 
+   FROM reviewer);  
+  
+
+-- AS TWO COLUMNS
+SELECT m.mov_title AS "Movie Title",
+	   re.rev_name AS "Reviewer Name"
+  FROM movie AS m
+  FULL OUTER JOIN rating AS ra
+    ON m.mov_id = ra.mov_id
+  FULL OUTER JOIN reviewer AS re
+    ON ra.rev_id = re.rev_id;
+    
+/* Ex. 6. 
+   From the following tables, write a SQL query to find all reviewers who have rated 7 or more stars to their rating. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+*/ 
  
+SELECT rev_name AS "Reviewer Name"
+  FROM reviewer
+  JOIN rating
+ USING (rev_id)
+ WHERE rev_stars >= 7
+   AND rev_name IS NOT NULL;
+
+/* Ex. 7. 
+   From the following tables, write a SQL query to find the movies without any rating. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+
+    
+SELECT * 
+  FROM movie
+ LIMIT 20;
+
+SELECT *
+  FROM reviewer;
  
- ---
+SELECT *
+  FROM rating;
+   
+/* Ex. 8. 
+   From the following table, write a SQL query to find the movies with ID 905 or 907 or 917. 
+   Return movie title.  
+   Sample table: movie
+*/  
  
+/* Ex. 9. 
+   From the following table, write a SQL query to find those movie titles, which include the words 'Boogie Nights'. 
+   Sort the result-set in ascending order by movie year. 
+   Return movie ID, movie title and movie release year.  
+   Sample table: movie
+*/ 
+
+/* Ex. 10. 
+   From the following table, write a SQL query to find those actors whose first name is 'Woody' and the last name is 'Allen'. 
+   Return actor ID  
+   Sample table: actor
+
+
+/* PART 14.2. SUBQUERIES */  
  
+/* Ex. 1. 
+   From the following table, write a SQL query to find the actors who played a role in the movie 'Annie Hall'. 
+   Return all the fields of actor table.  
+   Sample table: actor
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+
+/* Ex. 2. 
+   From the following tables, write a SQL query to find the director who directed a movie that casted a role for 'Eyes Wide Shut'. 
+   Return director first name, last name.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+ 
+/* Ex. 3. 
+   From the following table, write a SQL query to find those movies, which released in the country besides UK. 
+   Return movie title, movie year, movie time, date of release, releasing country.  
+   Sample table: movie
+*/ 
+ 
+/* Ex. 4. 
+   From the following tables, write a SQL query to find those movies where reviewer is unknown. 
+   Return movie title, year, release date, director first name, last name, actor first name, last name.  
+   Sample table: movie
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: reviewer
+   Sample table: rating
+*/  
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find those movies directed by the director whose first name is ‘Woddy’ 
+   and last name is ‘Allen’. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: director
+   Sample table: movie_direction
+*/ 
+
+/* Ex. 6. 
+   From the following tables, write a SQL query to find those years, which produced at least one movie and that, 
+   received a rating of more than three stars. Sort the result-set in ascending order by movie year. 
+   Return movie year.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+ 
+/* Ex. 7. 
+   From the following table, write a SQL query to find those movies, which have no ratings. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+ 
+/* Ex. 8. 
+   From the following tables, write a SQL query to find those reviewers who have rated nothing for some movies. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+*/  
+ 
+/* Ex. 9. 
+   From the following tables, write a SQL query to find those movies, which reviewed by a reviewer and got a rating. 
+   Sort the result-set in ascending order by reviewer name, movie title, review Stars. 
+   Return reviewer name, movie title, review Stars.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
+
+/* Ex. 10.  
+   From the following tables, write a SQL query to find those reviewers who rated more than one movie. 
+   Group the result set on reviewer’s name, movie title. 
+   Return reviewer’s name, movie title.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table : movie
+*/
+
+/* Ex. 11. 
+   From the following tables, write a SQL query to find those movies, which have received highest number of stars. 
+   Group the result set on movie title and sorts the result-set in ascending order by movie title. 
+   Return movie title and maximum number of review stars.  
+   Sample table: rating
+   Sample table: movie
+*/ 
+
+/* Ex. 12. 
+   From the following tables, write a SQL query to find all reviewers who rated the movie 'American Beauty'. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
+ 
+/* Ex. 13. 
+   From the following tables, write a SQL query to find the movies, which have reviewed by any reviewer body except by 'Paul Monks'. 
+   Return movie title.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
+ 
+/* Ex. 14. 
+   From the following tables, write a SQL query to find the lowest rated movies. Return reviewer name, movie title, 
+   and number of stars for those movies.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/  
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find the movies directed by 'James Cameron'. 
+   Return movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie
+*/ 
+
+/* Ex.16. 
+   Write a query in SQL to find the name of those movies where one or more actors acted in two or more movies.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+*/
+
+
+/* PART 14.3. JOINS */  
+ 
+/* Ex. 1. 
+   From the following tables, write a SQL query to find the name of all reviewers who have rated their ratings with a NULL value. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+*/ 
+
+/* Ex. 2. 
+   From the following tables, write a SQL query to find the actors who were cast in the movie 'Annie Hall'. 
+   Return actor first name, last name and role.  
+   Sample table: actor
+   Sample table: movie_cast
+   Sample table : movie
+*/ 
+ 
+/* Ex. 3. 
+   From the following tables, write a SQL query to find the director who directed a movie that casted a role for 'Eyes Wide Shut'. 
+   Return director first name, last name and movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+ 
+/* Ex. 4. 
+   From the following tables, write a SQL query to find who directed a movie that casted a role as ‘Sean Maguire’. 
+   Return director first name, last name and movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: movie
+*/  
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find the actors who have not acted in any movie between1990 
+   and 2000 (Begin and end values are included.). 
+   Return actor first name, last name, movie title and release year.  
+   Sample table: actor
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+
+/* Ex. 6. 
+   From the following tables, write a SQL query to find the directors with number of genres movies. 
+   Group the result set on director first name, last name and generic title. 
+   Sort the result-set in ascending order by director first name and last name. 
+   Return director first name, last name and number of genres movies.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: genres
+   Sample table: movie_genres
+*/ 
+ 
+/* Ex. 7. 
+   From the following table, write a SQL query to find the movies with year and genres. 
+   Return movie title, movie year and generic title.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+*/ 
+ 
+/* Ex. 8. 
+   From the following tables, write a SQL query to find all the movies with year, genres, and name of the director.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+   Sample table: director
+   Sample table: movie_direction
+*/  
+ 
+/* Ex. 9. 
+   From the following tables, write a SQL query to find the movies released before 1st January 1989. 
+   Sort the result-set in descending order by date of release. 
+   Return movie title, release year, date of release, duration, and first and last name of the director. 
+   Sample table: movie
+   Sample table: director
+   Sample table: movie_direction
+*/ 
+
+/* Ex. 10.  
+   From the following tables, write a SQL query to compute the average time and count number of movies for each genre. 
+   Return genre title, average time and number of movies for each genre.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+*/
+
+/* Ex. 11. 
+   From the following tables, write a SQL query to find movies with the lowest duration. 
+   Return movie title, movie year, director first name, last name, actor first name, last name and role.  
+   Sample table: movie
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+   Sample table : movie_cast
+*/ 
+
+/* Ex. 12. 
+   From the following tables, write a SQL query to find those years when a movie received a rating of 3 or 4. 
+   Sort the result in increasing order on movie year. 
+   Return move year.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+ 
+/* Ex. 13. 
+   From the following tables, write a SQL query to get the reviewer name, movie title, and stars in an order 
+   that reviewer name will come first, then by movie title, and lastly by number of stars.  
+   Sample table : movie
+   Sample table: rating
+   Sample table: reviewer
+*/ 
+ 
+/* Ex. 14. 
+   From the following tables, write a SQL query to find those movies that have at least one rating and 
+   received highest number of stars. Sort the result-set on movie title. 
+   Return movie title and maximum review stars. 
+   Sample table: movie
+   Sample table: rating
+*/  
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find those movies, which have received ratings. 
+   Return movie title, director first name, director last name and review stars. 
+   Sample table: movie
+   Sample table: rating
+   Sample table: movie_direction
+   Sample table: director
+*/ 
+
+/* Ex. 16. 
+   Write a query in SQL to find the movie title, actor first and last name, and the role for those movies 
+   where one or more actors acted in two or more movies.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+*/
+
+/* Ex. 17. 
+   From the following tables, write a SQL query to find the actor whose first name is 'Claire' and last name is 'Danes'. 
+   Return director first name, last name, movie title, actor first name and last name, role.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+*/ 
+ 
+/* Ex. 18. 
+   From the following tables, write a SQL query to find those actors who have directed their movies. 
+   Return actor first name, last name, movie title and role.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+*/  
+ 
+/* Ex. 19. 
+   From the following tables, write a SQL query to find the cast list of the movie ‘Chinatown’. 
+   Return first name, last name.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+*/ 
+
+/* Ex. 20.  
+   From the following tables, write a SQL query to find those movies where actor’s first name is 'Harrison' 
+   and last name is 'Ford'. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+*/
+
+/* Ex. 21. 
+   From the following tables, write a SQL query to find the highest-rated movies. 
+   Return movie title, movie year, review stars and releasing country.  
+   Sample table : movie
+   Sample table : rating
+*/ 
+
+/* Ex. 22. 
+   From the following tables, write a SQL query to find the highest-rated ‘Mystery Movies’. 
+   Return the title, year, and rating.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+   Sample table: rating
+*/ 
+ 
+/* Ex. 23. 
+   From the following tables, write a SQL query to find the years when most of the ‘Mystery Movies’ produced. 
+   Count the number of generic title and compute their average rating. 
+   Group the result set on movie release year, generic title. 
+   Return movie year, generic title, number of generic title and average rating.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+   Sample table: rating
+*/ 
+ 
+/* Ex. 24. 
+   From the following tables, write a query in SQL to generate a report, which contain the fields movie title, 
+   name of the female actor, year of the movie, role, movie genres, the director, date of release, and rating of that movie.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+   Sample table: rating
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+*/  
+
+
  /* PART 1. SQL VIEW */  
  
 /* Ex. 1. 
@@ -5800,4 +6342,4 @@ SELECT *
    
 */ 
 
-/* Ex. 10. 
+/* Ex. 10.  
