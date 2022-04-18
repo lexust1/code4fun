@@ -5922,23 +5922,22 @@ SELECT rev_name AS "Reviewer Name"
    Sample table: rating
 */ 
 
-    
-SELECT * 
-  FROM movie
- LIMIT 20;
-
-SELECT *
-  FROM reviewer;
- 
-SELECT *
-  FROM rating;
-   
+SELECT mov_title AS "Movie Title"
+  FROM movie AS m
+  LEFT JOIN rating AS r
+    ON m.mov_id = r.mov_id
+ WHERE r.mov_id IS NULL;  
+  
 /* Ex. 8. 
    From the following table, write a SQL query to find the movies with ID 905 or 907 or 917. 
    Return movie title.  
    Sample table: movie
 */  
- 
+
+SELECT mov_title AS "Movie Title"
+  FROM movie
+ WHERE mov_id IN (905, 907, 917);
+
 /* Ex. 9. 
    From the following table, write a SQL query to find those movie titles, which include the words 'Boogie Nights'. 
    Sort the result-set in ascending order by movie year. 
@@ -5946,11 +5945,37 @@ SELECT *
    Sample table: movie
 */ 
 
+-- LIKE
+SELECT mov_id AS "Movie ID",
+	   mov_title AS "Movie Title",
+	   mov_year AS "Release Year"
+  FROM movie
+ WHERE mov_title LIKE '%Boogie Nights%';  
+
+-- SIMILAR TO
+SELECT mov_id AS "Movie ID",
+	   mov_title AS "Movie Title",
+	   mov_year AS "Release Year"
+  FROM movie
+ WHERE mov_title SIMILAR TO '%Boogie Nights%';  
+
+-- REGEX
+SELECT mov_id AS "Movie ID",
+	   mov_title AS "Movie Title",
+	   mov_year AS "Release Year"
+  FROM movie
+ WHERE mov_title ~ 'Boogie Nights';  
+  
 /* Ex. 10. 
    From the following table, write a SQL query to find those actors whose first name is 'Woody' and the last name is 'Allen'. 
    Return actor ID  
    Sample table: actor
+*/
 
+SELECT act_id AS "Actor ID"
+  FROM actor
+ WHERE act_fname = 'Woody'
+   AND act_lname = 'Allen';
 
 /* PART 14.2. SUBQUERIES */  
  
@@ -5962,6 +5987,25 @@ SELECT *
    Sample table: movie
 */ 
 
+-- Subquery  
+SELECT actor.*
+  FROM actor
+ WHERE act_id IN (SELECT act_id 
+				    FROM movie_cast 
+				   WHERE mov_id IN (SELECT mov_id 
+				  					  FROM movie 
+				  					 WHERE mov_title = 'Annie Hall'));
+			  				
+-- JOIN
+SELECT a.*
+  FROM actor AS a
+  JOIN movie_cast AS mc
+    ON a.act_id = mc.act_id
+  JOIN movie AS m
+    ON mc.mov_id = m.mov_id
+ WHERE m.mov_title= 'Annie Hall';
+   
+				  					
 /* Ex. 2. 
    From the following tables, write a SQL query to find the director who directed a movie that casted a role for 'Eyes Wide Shut'. 
    Return director first name, last name.  
@@ -5970,7 +6014,24 @@ SELECT *
    Sample table: movie_cast
    Sample table: movie
 */ 
+				  					
+
+  
+SELECT * 
+  FROM movie
+ LIMIT 40;
+
+SELECT *
+  FROM reviewer;
  
+SELECT *
+  FROM rating;
+ 
+SELECT *
+  FROM actor;  
+ 
+SELECT * 
+  FROM movie_cast; 
 /* Ex. 3. 
    From the following table, write a SQL query to find those movies, which released in the country besides UK. 
    Return movie title, movie year, movie time, date of release, releasing country.  
