@@ -5950,7 +5950,8 @@ SELECT mov_id AS "Movie ID",
 	   mov_title AS "Movie Title",
 	   mov_year AS "Release Year"
   FROM movie
- WHERE mov_title LIKE '%Boogie Nights%';  
+ WHERE mov_title LIKE '%Boogie Nights%'
+ ORDER BY mov_year;  
 
 -- SIMILAR TO
 SELECT mov_id AS "Movie ID",
@@ -6014,9 +6015,132 @@ SELECT a.*
    Sample table: movie_cast
    Sample table: movie
 */ 
-				  					
 
+-- Subquery
+SELECT dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name"
+  FROM director 
+ WHERE dir_id IN (SELECT dir_id 
+					FROM movie_direction 
+				   WHERE mov_id IN (SELECT mov_id 
+				  					  FROM movie 
+				  					 WHERE mov_title = 'Eyes Wide Shut')); 
+				  					
+-- JOIN
+SELECT dir_fname AS "Director First Name",
+	   dir_lname AS "DIrector Last Name"
+  FROM director
+  JOIN movie_direction
+ USING (dir_id)
+  JOIN movie 
+ USING (mov_id)
+ WHERE mov_title = 'Eyes Wide Shut'; 
+
+/* Ex. 3. 
+   From the following table, write a SQL query to find those movies, which released in the country besides UK. 
+   Return movie title, movie year, movie time, date of release, releasing country.  
+   Sample table: movie
+*/ 
+
+SELECT * 
+  FROM movie
+ WHERE mov_rel_country != 'UK'; 
+
+/* Ex. 4. 
+   From the following tables, write a SQL query to find those movies where reviewer is unknown. 
+   Return movie title, year, release date, director first name, last name, actor first name, last name.  
+   Sample table: movie
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: reviewer
+   Sample table: rating
+*/  
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Year",
+	   mov_dt_rel AS "Release Date",
+	   dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name"
+  FROM movie 
+  JOIN rating 
+ USING (mov_id)
+  JOIN reviewer
+ USING (rev_id)
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor 
+ USING (act_id)
+ WHERE rev_name IS NULL;
+   
+/* Ex. 5. 
+   From the following tables, write a SQL query to find those movies directed by the director whose first name is ‘Woddy’ 
+   and last name is ‘Allen’. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: director
+   Sample table: movie_direction
+*/ 
+
+-- Subquery
+SELECT mov_title AS "Movie title"
+  FROM movie 
+ WHERE mov_id IN (SELECT mov_id 
+					FROM movie_direction 
+				   WHERE dir_id IN (SELECT dir_id 
+				  					  FROM director 
+				  					 WHERE dir_fname = 'Woody' 
+				  					   AND dir_lname = 'Allen')); 
+
+-- JOIN
+SELECT mov_title AS "Movie title"
+  FROM movie 
+  JOIN movie_direction 
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE dir_fname = 'Woody'
+   AND dir_lname = 'Allen';			  					   
   
+/* Ex. 6. 
+   From the following tables, write a SQL query to find those years, which produced at least one movie and that, 
+   received a rating of more than three stars. Sort the result-set in ascending order by movie year. 
+   Return movie year.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+-- Subquery
+SELECT DISTINCT mov_year AS "Movie Year"
+  FROM movie 
+ WHERE mov_id IN (SELECT mov_id 
+ 					FROM rating 
+ 				   WHERE rev_stars > 3)
+ ORDER BY mov_year; 
+
+-- JOIN
+SELECT DISTINCT mov_year AS "Movie Year"
+  FROM movie
+  JOIN rating
+ USING (mov_id)
+ WHERE rev_stars > 3
+ ORDER BY mov_year; 
+ 
+/* Ex. 7. 
+   From the following table, write a SQL query to find those movies, which have no ratings. 
+   Return movie title.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+
+
+
 SELECT * 
   FROM movie
  LIMIT 40;
@@ -6032,48 +6156,12 @@ SELECT *
  
 SELECT * 
   FROM movie_cast; 
-/* Ex. 3. 
-   From the following table, write a SQL query to find those movies, which released in the country besides UK. 
-   Return movie title, movie year, movie time, date of release, releasing country.  
-   Sample table: movie
-*/ 
  
-/* Ex. 4. 
-   From the following tables, write a SQL query to find those movies where reviewer is unknown. 
-   Return movie title, year, release date, director first name, last name, actor first name, last name.  
-   Sample table: movie
-   Sample table: actor
-   Sample table: director
-   Sample table: movie_direction
-   Sample table: movie_cast
-   Sample table: reviewer
-   Sample table: rating
-*/  
-
-/* Ex. 5. 
-   From the following tables, write a SQL query to find those movies directed by the director whose first name is ‘Woddy’ 
-   and last name is ‘Allen’. 
-   Return movie title.  
-   Sample table: movie
-   Sample table: director
-   Sample table: movie_direction
-*/ 
-
-/* Ex. 6. 
-   From the following tables, write a SQL query to find those years, which produced at least one movie and that, 
-   received a rating of more than three stars. Sort the result-set in ascending order by movie year. 
-   Return movie year.  
-   Sample table: movie
-   Sample table: rating
-*/ 
+SELECT *
+  FROM director;
  
-/* Ex. 7. 
-   From the following table, write a SQL query to find those movies, which have no ratings. 
-   Return movie title.  
-   Sample table: movie
-   Sample table: rating
-*/ 
- 
+SELECT *
+  FROM movie_direction;
 /* Ex. 8. 
    From the following tables, write a SQL query to find those reviewers who have rated nothing for some movies. 
    Return reviewer name.  
