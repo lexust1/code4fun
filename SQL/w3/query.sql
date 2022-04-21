@@ -6139,8 +6139,195 @@ SELECT DISTINCT mov_year AS "Movie Year"
    Sample table: rating
 */ 
 
+-- Subquery
+SELECT mov_title AS "Movie Title"
+  FROM movie 
+ WHERE mov_id NOT IN (SELECT mov_id 
+					    FROM rating)
+	OR mov_id IN (SELECT mov_id
+	                FROM rating
+	               WHERE rev_stars IS NULL);
+			   
+-- JOIN
+SELECT mov_title AS "Movie Title" 
+  FROM movie
+  FULL OUTER JOIN rating
+ USING (mov_id)
+ WHERE rev_stars IS NULL;
+
+/* Ex. 8. 
+   From the following tables, write a SQL query to find those reviewers who have rated nothing for some movies. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+*/  
+
+-- Subquery
+SELECT rev_name AS "Reviewer Name"
+  FROM reviewer
+ WHERE rev_id NOT IN (SELECT rev_id 
+ 					    FROM rating) 
+    OR rev_id IN (SELECT rev_id 
+   					FROM rating 
+   				   WHERE rev_stars IS NULL);
+   				  
+-- JOIN
+SELECT rev_name AS "Reviewer Name"
+  FROM reviewer 
+  FULL OUTER JOIN rating
+ USING (rev_id) 
+ WHERE rev_stars IS NULL;
+   				 
+/* Ex. 9. 
+   From the following tables, write a SQL query to find those movies, which reviewed by a reviewer and got a rating. 
+   Sort the result-set in ascending order by reviewer name, movie title, review Stars. 
+   Return reviewer name, movie title, review Stars.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
 
 
+SELECT rev_name AS "Reviewer Name",
+	   mov_title AS "Movie Title",
+	   rev_stars AS "Review Stars"
+  FROM movie
+  JOIN rating
+ USING (mov_id)
+  JOIN reviewer
+ USING (rev_id)
+ WHERE rev_stars IS NOT NULL
+   AND rev_name IS NOT NULL; 
+
+/* Ex. 10.  
+   From the following tables, write a SQL query to find those reviewers who rated more than one movie. 
+   Group the result set on reviewer’s name, movie title. 
+   Return reviewer’s name, movie title.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table : movie
+*/
+
+ SELECT rev_name AS "Reviewer Name",
+ 		mov_title AS "Movie Title"
+   FROM (SELECT rev_id 
+   		   FROM rating 
+   		  GROUP BY rev_id 
+   		 HAVING COUNT(*) > 1) AS most_rev
+   JOIN rating
+  USING (rev_id)
+   JOIN reviewer
+  USING (rev_id)
+   JOIN movie 
+  USING (mov_id);
+
+/* Ex. 11. 
+   From the following tables, write a SQL query to find those movies, which have received highest number of stars. 
+   Group the result set on movie title and sorts the result-set in ascending order by movie title. 
+   Return movie title and maximum number of review stars.  
+   Sample table: rating
+   Sample table: movie
+*/ 
+
+ -- It is an unclear question. The first interpretation:
+SELECT mov_title AS "Movie Title",
+	   rev_stars AS "Review Stars"
+  FROM movie
+  JOIN rating 
+ USING (mov_id)
+ WHERE rev_stars = (SELECT MAX(rev_stars) 
+					  FROM rating)
+ ORDER BY mov_title;
+
+-- The second intterpretation: 
+SELECT mov_title AS "Movie Title",
+	   MAX(rev_stars) AS "Review Stars"
+  FROM movie
+  JOIN rating 
+ USING (mov_id)
+ GROUP BY mov_title
+ ORDER BY mov_title;
+
+/* Ex. 12. 
+   From the following tables, write a SQL query to find all reviewers who rated the movie 'American Beauty'. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
+
+-- Subquery
+SELECT rev_name AS "Reviewer Name"
+  FROM reviewer
+ WHERE rev_id IN (SELECT rev_id 
+					FROM rating 
+				   WHERE mov_id IN (SELECT mov_id 
+				  					  FROM movie 
+				  					 WHERE mov_title = 'American Beauty')); 
+
+-- JOIN 
+SELECT rev_name AS "Reviewer Name"
+  FROM reviewer 
+  JOIN rating 
+ USING (rev_id)
+  JOIN movie
+ USING (mov_id)
+ WHERE mov_title = 'American Beauty';
+				  					
+/* Ex. 13. 
+   From the following tables, write a SQL query to find the movies, which have reviewed by any reviewer body except by 'Paul Monks'. 
+   Return movie title.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/ 
+
+-- Subquery
+SELECT mov_title AS "Movie Title"
+  FROM movie 
+ WHERE mov_id IN (SELECT mov_id 
+					FROM rating 
+				   WHERE rev_id IN (SELECT rev_id 
+				  					  FROM reviewer 
+				  					 WHERE rev_name != 'Paul Monks')); 
+				  					
+-- JOIN
+SELECT mov_title AS "Movie Title"
+  FROM movie
+  JOIN rating
+ USING (mov_id)
+  JOIN reviewer
+ USING (rev_id)
+ WHERE rev_name != 'Paul Monks';
+
+/* Ex. 14. 
+   From the following tables, write a SQL query to find the lowest rated movies. Return reviewer name, movie title, 
+   and number of stars for those movies.  
+   Sample table: reviewer
+   Sample table: rating
+   Sample table: movie
+*/  
+
+SELECT rev_name AS "Reviewer Name",
+	   mov_title AS "Movie Title",
+	   rev_stars AS "Reviewer Stars"
+  FROM rating 
+  JOIN movie
+ USING (mov_id)
+  JOIN reviewer 
+ USING (rev_id)
+ WHERE rev_stars = (SELECT MIN(rev_stars) 
+					  FROM rating);
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find the movies directed by 'James Cameron'. 
+   Return movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie
+*/ 
+
+					 
 SELECT * 
   FROM movie
  LIMIT 40;
@@ -6162,71 +6349,6 @@ SELECT *
  
 SELECT *
   FROM movie_direction;
-/* Ex. 8. 
-   From the following tables, write a SQL query to find those reviewers who have rated nothing for some movies. 
-   Return reviewer name.  
-   Sample table: reviewer
-   Sample table: rating
-*/  
- 
-/* Ex. 9. 
-   From the following tables, write a SQL query to find those movies, which reviewed by a reviewer and got a rating. 
-   Sort the result-set in ascending order by reviewer name, movie title, review Stars. 
-   Return reviewer name, movie title, review Stars.  
-   Sample table: reviewer
-   Sample table: rating
-   Sample table: movie
-*/ 
-
-/* Ex. 10.  
-   From the following tables, write a SQL query to find those reviewers who rated more than one movie. 
-   Group the result set on reviewer’s name, movie title. 
-   Return reviewer’s name, movie title.  
-   Sample table: reviewer
-   Sample table: rating
-   Sample table : movie
-*/
-
-/* Ex. 11. 
-   From the following tables, write a SQL query to find those movies, which have received highest number of stars. 
-   Group the result set on movie title and sorts the result-set in ascending order by movie title. 
-   Return movie title and maximum number of review stars.  
-   Sample table: rating
-   Sample table: movie
-*/ 
-
-/* Ex. 12. 
-   From the following tables, write a SQL query to find all reviewers who rated the movie 'American Beauty'. 
-   Return reviewer name.  
-   Sample table: reviewer
-   Sample table: rating
-   Sample table: movie
-*/ 
- 
-/* Ex. 13. 
-   From the following tables, write a SQL query to find the movies, which have reviewed by any reviewer body except by 'Paul Monks'. 
-   Return movie title.  
-   Sample table: reviewer
-   Sample table: rating
-   Sample table: movie
-*/ 
- 
-/* Ex. 14. 
-   From the following tables, write a SQL query to find the lowest rated movies. Return reviewer name, movie title, 
-   and number of stars for those movies.  
-   Sample table: reviewer
-   Sample table: rating
-   Sample table: movie
-*/  
-
-/* Ex. 15. 
-   From the following tables, write a SQL query to find the movies directed by 'James Cameron'. 
-   Return movie title.  
-   Sample table: director
-   Sample table: movie_direction
-   Sample table: movie
-*/ 
-
 /* Ex.16. 
    Write a query in SQL to find the name of those movies where one or more actors acted in two or more movies.  
    Sample table: movie
