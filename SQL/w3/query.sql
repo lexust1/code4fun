@@ -6326,8 +6326,140 @@ SELECT rev_name AS "Reviewer Name",
    Sample table: movie_direction
    Sample table: movie
 */ 
-
 					 
+-- Subquery
+SELECT mov_title AS "Movie Title"
+  FROM movie
+ WHERE mov_id IN (SELECT mov_id 
+				    FROM movie_direction 
+				   WHERE dir_id IN (SELECT dir_id 
+				  					  FROM director 
+				  					 WHERE dir_fname = 'James' 
+				  					   AND dir_lname = 'Cameron')); 
+
+-- JOIN				  					  
+SELECT mov_title AS "Movie Title"
+  FROM movie 
+  JOIN movie_direction 
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE dir_fname = 'James'
+   AND dir_lname = 'Cameron';
+					 
+/* Ex.16. 
+   Write a query in SQL to find the name of those movies where one or more actors acted in two or more movies.  
+   Sample table: movie
+   Sample table: movie_cast
+   Sample table: actor
+*/
+  
+-- Subquery  
+SELECT mov_title
+  FROM movie 
+ WHERE mov_id IN (SELECT mov_id 
+					FROM movie_cast 
+				   WHERE act_id IN (SELECT act_id 
+				                      FROM movie_cast 
+				                     GROUP BY act_id 
+				                    HAVING COUNT(*) >= 2));
+				                   
+-- JOIN
+SELECT mov_title
+  FROM (SELECT act_id 
+  		  FROM movie_cast 
+  		 GROUP BY act_id 
+  		HAVING COUNT(*) >= 2) AS pop_actors
+  JOIN movie_cast
+ USING (act_id) 
+  JOIN actor 
+ USING (act_id)
+  JOIN movie
+ USING (mov_id); 
+
+/* PART 14.3. JOINS */  
+ 
+/* Ex. 1. 
+   From the following tables, write a SQL query to find the name of all reviewers who have rated their ratings with a NULL value. 
+   Return reviewer name.  
+   Sample table: reviewer
+   Sample table: rating
+*/ 
+
+SELECT rev_name
+  FROM reviewer 
+  JOIN rating
+ USING (rev_id)
+ WHERE rev_stars IS NULL;
+
+/* Ex. 2. 
+   From the following tables, write a SQL query to find the actors who were cast in the movie 'Annie Hall'. 
+   Return actor first name, last name and role.  
+   Sample table: actor
+   Sample table: movie_cast
+   Sample table : movie
+*/ 
+
+SELECT act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   role AS "Role"
+  FROM actor
+  JOIN movie_cast
+ USING (act_id)
+  JOIN movie
+ USING (mov_id)
+ WHERE mov_title = 'Annie Hall';
+
+/* Ex. 3. 
+   From the following tables, write a SQL query to find the director who directed a movie that casted a role for 'Eyes Wide Shut'. 
+   Return director first name, last name and movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+
+SELECT dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   mov_title AS "Movie Title"
+  FROM director
+  JOIN movie_direction
+ USING (dir_id)
+  JOIN movie 
+ USING (mov_id)
+ WHERE mov_title = 'Eyes Wide Shut';
+ 
+/* Ex. 4. 
+   From the following tables, write a SQL query to find who directed a movie that casted a role as ‘Sean Maguire’. 
+   Return director first name, last name and movie title.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: movie_cast
+   Sample table: movie
+*/  
+
+SELECT dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   mov_title AS "Movie Title"
+  FROM director
+  JOIN movie_direction
+ USING (dir_id)
+  JOIN movie 
+ USING (mov_id)
+  JOIN movie_cast
+ USING (mov_id) 
+ WHERE role = 'Sean Maguire';
+
+/* Ex. 5. 
+   From the following tables, write a SQL query to find the actors who have not acted in any movie between1990 
+   and 2000 (Begin and end values are included.). 
+   Return actor first name, last name, movie title and release year.  
+   Sample table: actor
+   Sample table: movie_cast
+   Sample table: movie
+*/ 
+
+
 SELECT * 
   FROM movie
  LIMIT 40;
@@ -6348,59 +6480,7 @@ SELECT *
   FROM director;
  
 SELECT *
-  FROM movie_direction;
-/* Ex.16. 
-   Write a query in SQL to find the name of those movies where one or more actors acted in two or more movies.  
-   Sample table: movie
-   Sample table: movie_cast
-   Sample table: actor
-*/
-
-
-/* PART 14.3. JOINS */  
- 
-/* Ex. 1. 
-   From the following tables, write a SQL query to find the name of all reviewers who have rated their ratings with a NULL value. 
-   Return reviewer name.  
-   Sample table: reviewer
-   Sample table: rating
-*/ 
-
-/* Ex. 2. 
-   From the following tables, write a SQL query to find the actors who were cast in the movie 'Annie Hall'. 
-   Return actor first name, last name and role.  
-   Sample table: actor
-   Sample table: movie_cast
-   Sample table : movie
-*/ 
- 
-/* Ex. 3. 
-   From the following tables, write a SQL query to find the director who directed a movie that casted a role for 'Eyes Wide Shut'. 
-   Return director first name, last name and movie title.  
-   Sample table: director
-   Sample table: movie_direction
-   Sample table: movie_cast
-   Sample table: movie
-*/ 
- 
-/* Ex. 4. 
-   From the following tables, write a SQL query to find who directed a movie that casted a role as ‘Sean Maguire’. 
-   Return director first name, last name and movie title.  
-   Sample table: director
-   Sample table: movie_direction
-   Sample table: movie_cast
-   Sample table: movie
-*/  
-
-/* Ex. 5. 
-   From the following tables, write a SQL query to find the actors who have not acted in any movie between1990 
-   and 2000 (Begin and end values are included.). 
-   Return actor first name, last name, movie title and release year.  
-   Sample table: actor
-   Sample table: movie_cast
-   Sample table: movie
-*/ 
-
+  FROM movie_direction; 
 /* Ex. 6. 
    From the following tables, write a SQL query to find the directors with number of genres movies. 
    Group the result set on director first name, last name and generic title. 
