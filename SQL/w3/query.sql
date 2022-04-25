@@ -6459,6 +6459,110 @@ SELECT dir_fname AS "Director First Name",
    Sample table: movie
 */ 
 
+SELECT act_fname AS "First Name",
+	   act_lname AS "Last Name",
+	   mov_title AS "Movie Title",
+	   mov_year AS "Movie Year"
+  FROM actor 
+  JOIN movie_cast
+ USING (act_id)
+  JOIN movie
+ USING (mov_id)
+ WHERE mov_year NOT BETWEEN 1990 AND 2000;
+
+/* Ex. 6. 
+   From the following tables, write a SQL query to find the directors with number of genres movies. 
+   Group the result set on director first name, last name and generic title. 
+   Sort the result-set in ascending order by director first name and last name. 
+   Return director first name, last name and number of genres movies.  
+   Sample table: director
+   Sample table: movie_direction
+   Sample table: genres
+   Sample table: movie_genres
+*/ 
+ 
+SELECT dir_fname AS "First Name",
+	   dir_lname AS "Last Name",
+	   COUNT(*) AS "Num of Genres"
+  FROM director
+  JOIN movie_direction
+ USING (dir_id)
+  JOIN movie_genres
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id)
+ GROUP BY dir_fname, dir_lname, gen_title
+ ORDER BY dir_fname, dir_lname;
+  
+/* Ex. 7. 
+   From the following table, write a SQL query to find the movies with year and genres. 
+   Return movie title, movie year and generic title.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+*/ 
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Movie Year",
+	   gen_title AS "Genre"
+  FROM movie
+  JOIN movie_genres
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id);
+
+/* Ex. 8. 
+   From the following tables, write a SQL query to find all the movies with year, genres, and name of the director.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+   Sample table: director
+   Sample table: movie_direction
+*/  
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Movie Year",
+	   gen_title AS "Genre",
+	   CONCAT(dir_fname, ' ',dir_lname) AS "Director Name"
+  FROM movie
+  JOIN movie_genres
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id)
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id);
+ 
+/* Ex. 9. 
+   From the following tables, write a SQL query to find the movies released before 1st January 1989. 
+   Sort the result-set in descending order by date of release. 
+   Return movie title, release year, date of release, duration, and first and last name of the director. 
+   Sample table: movie
+   Sample table: director
+   Sample table: movie_direction
+*/ 
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Movie Year",
+	   mov_dt_rel AS "Movie Date Release",
+	   mov_lang AS "Duration",
+	   dir_fname AS "First Name",
+	   dir_lname AS "Last Name"
+  FROM movie 
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE mov_dt_rel < '1989-01-01';
+	   
+/* Ex. 10.  
+   From the following tables, write a SQL query to compute the average time and count number of movies for each genre. 
+   Return genre title, average time and number of movies for each genre.  
+   Sample table: movie
+   Sample table: genres
+   Sample table: movie_genres
+*/
 
 SELECT * 
   FROM movie
@@ -6481,51 +6585,13 @@ SELECT *
  
 SELECT *
   FROM movie_direction; 
-/* Ex. 6. 
-   From the following tables, write a SQL query to find the directors with number of genres movies. 
-   Group the result set on director first name, last name and generic title. 
-   Sort the result-set in ascending order by director first name and last name. 
-   Return director first name, last name and number of genres movies.  
-   Sample table: director
-   Sample table: movie_direction
-   Sample table: genres
-   Sample table: movie_genres
-*/ 
  
-/* Ex. 7. 
-   From the following table, write a SQL query to find the movies with year and genres. 
-   Return movie title, movie year and generic title.  
-   Sample table: movie
-   Sample table: genres
-   Sample table: movie_genres
-*/ 
+SELECT *
+  FROM genres;
+  
+SELECT *
+  FROM movie_genres;
  
-/* Ex. 8. 
-   From the following tables, write a SQL query to find all the movies with year, genres, and name of the director.  
-   Sample table: movie
-   Sample table: genres
-   Sample table: movie_genres
-   Sample table: director
-   Sample table: movie_direction
-*/  
- 
-/* Ex. 9. 
-   From the following tables, write a SQL query to find the movies released before 1st January 1989. 
-   Sort the result-set in descending order by date of release. 
-   Return movie title, release year, date of release, duration, and first and last name of the director. 
-   Sample table: movie
-   Sample table: director
-   Sample table: movie_direction
-*/ 
-
-/* Ex. 10.  
-   From the following tables, write a SQL query to compute the average time and count number of movies for each genre. 
-   Return genre title, average time and number of movies for each genre.  
-   Sample table: movie
-   Sample table: genres
-   Sample table: movie_genres
-*/
-
 /* Ex. 11. 
    From the following tables, write a SQL query to find movies with the lowest duration. 
    Return movie title, movie year, director first name, last name, actor first name, last name and role.  
