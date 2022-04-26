@@ -6564,6 +6564,103 @@ SELECT mov_title AS "Movie Title",
    Sample table: movie_genres
 */
 
+SELECT gen_title AS "Genre",
+	   ROUND(AVG(mov_time), 2) AS "Average movie time",
+	   COUNT(*) AS "Movies per genre"
+  FROM movie 
+  JOIN movie_genres
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id)
+ GROUP BY gen_title;
+
+/* Ex. 11. 
+   From the following tables, write a SQL query to find movies with the lowest duration. 
+   Return movie title, movie year, director first name, last name, actor first name, last name and role.  
+   Sample table: movie
+   Sample table: actor
+   Sample table: director
+   Sample table: movie_direction
+   Sample table : movie_cast
+*/ 
+
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Movie Year",
+	   dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   role AS "Actor Role"
+  FROM movie
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor 
+ USING (act_id)
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE mov_time = (SELECT MIN(mov_time) 
+ 				     FROM movie);
+ 
+/* Ex. 12. 
+   From the following tables, write a SQL query to find those years when a movie received a rating of 3 or 4. 
+   Sort the result in increasing order on movie year. 
+   Return move year.  
+   Sample table: movie
+   Sample table: rating
+*/ 
+
+SELECT DISTINCT mov_year AS "Movie Year"
+  FROM movie
+  JOIN rating
+ USING (mov_id) 
+ WHERE rev_stars IN (3, 4)
+ ORDER BY mov_year; 
+ 				    			    
+/* Ex. 13. 
+   From the following tables, write a SQL query to get the reviewer name, movie title, and stars in an order 
+   that reviewer name will come first, then by movie title, and lastly by number of stars.  
+   Sample table : movie
+   Sample table: rating
+   Sample table: reviewer
+*/ 
+
+SELECT rev_name AS "Reviewer Name",
+	   mov_title AS "Movie Title",
+	   rev_stars AS "Rating"
+  FROM movie
+  JOIN rating 
+ USING (mov_id)
+  JOIN reviewer
+ USING (rev_id)
+ ORDER BY rev_name, mov_title, rev_stars;
+	
+/* Ex. 14. 
+   From the following tables, write a SQL query to find those movies that have at least one rating and 
+   received highest number of stars. Sort the result-set on movie title. 
+   Return movie title and maximum review stars. 
+   Sample table: movie
+   Sample table: rating
+*/  
+
+SELECT mov_title AS "Movie Title",
+	   rev_stars AS "Rating"
+  FROM movie	   
+  JOIN rating
+ USING (mov_id)
+ WHERE rev_stars IS NOT NULL
+ ORDER BY mov_title;
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find those movies, which have received ratings. 
+   Return movie title, director first name, director last name and review stars. 
+   Sample table: movie
+   Sample table: rating
+   Sample table: movie_direction
+   Sample table: director
+*/ 
+
 SELECT * 
   FROM movie
  LIMIT 40;
@@ -6590,51 +6687,8 @@ SELECT *
   FROM genres;
   
 SELECT *
-  FROM movie_genres;
+  FROM movie_genres; 
  
-/* Ex. 11. 
-   From the following tables, write a SQL query to find movies with the lowest duration. 
-   Return movie title, movie year, director first name, last name, actor first name, last name and role.  
-   Sample table: movie
-   Sample table: actor
-   Sample table: director
-   Sample table: movie_direction
-   Sample table : movie_cast
-*/ 
-
-/* Ex. 12. 
-   From the following tables, write a SQL query to find those years when a movie received a rating of 3 or 4. 
-   Sort the result in increasing order on movie year. 
-   Return move year.  
-   Sample table: movie
-   Sample table: rating
-*/ 
- 
-/* Ex. 13. 
-   From the following tables, write a SQL query to get the reviewer name, movie title, and stars in an order 
-   that reviewer name will come first, then by movie title, and lastly by number of stars.  
-   Sample table : movie
-   Sample table: rating
-   Sample table: reviewer
-*/ 
- 
-/* Ex. 14. 
-   From the following tables, write a SQL query to find those movies that have at least one rating and 
-   received highest number of stars. Sort the result-set on movie title. 
-   Return movie title and maximum review stars. 
-   Sample table: movie
-   Sample table: rating
-*/  
-
-/* Ex. 15. 
-   From the following tables, write a SQL query to find those movies, which have received ratings. 
-   Return movie title, director first name, director last name and review stars. 
-   Sample table: movie
-   Sample table: rating
-   Sample table: movie_direction
-   Sample table: director
-*/ 
-
 /* Ex. 16. 
    Write a query in SQL to find the movie title, actor first and last name, and the role for those movies 
    where one or more actors acted in two or more movies.  
