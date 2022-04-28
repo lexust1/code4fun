@@ -6661,34 +6661,20 @@ SELECT mov_title AS "Movie Title",
    Sample table: director
 */ 
 
-SELECT * 
-  FROM movie
- LIMIT 40;
 
-SELECT *
-  FROM reviewer;
- 
-SELECT *
-  FROM rating;
- 
-SELECT *
-  FROM actor;  
- 
-SELECT * 
-  FROM movie_cast; 
- 
-SELECT *
-  FROM director;
- 
-SELECT *
-  FROM movie_direction; 
- 
-SELECT *
-  FROM genres;
-  
-SELECT *
-  FROM movie_genres; 
- 
+SELECT mov_title AS "Movie Title",
+	   dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   rev_stars AS "Rating"
+  FROM movie
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+  JOIN rating
+ USING (mov_id)
+ WHERE rev_stars IS NOT NULL; 
+
 /* Ex. 16. 
    Write a query in SQL to find the movie title, actor first and last name, and the role for those movies 
    where one or more actors acted in two or more movies.  
@@ -6697,6 +6683,40 @@ SELECT *
    Sample table: actor
 */
 
+-- 1
+SELECT mov_title AS "Movie Title",
+	   act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   role AS "Role"
+  FROM movie
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor
+ USING (act_id)
+ WHERE act_id IN (SELECT act_id 
+				    FROM movie_cast 
+				   GROUP BY act_id 
+				  HAVING COUNT(*) > 1);
+
+-- 2				 
+WITH CTE AS (SELECT *
+			   FROM movie
+  			   JOIN movie_cast
+ 			  USING (mov_id)
+			   JOIN actor
+ 			  USING (act_id))
+SELECT mov_title AS "Movie Title",
+	   act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   role AS "Role"
+  FROM CTE
+  JOIN (SELECT act_id 
+  		FROM CTE 
+  		GROUP BY act_id 
+  		HAVING COUNT(*) > 1) AS CTE_act
+  USING (act_id);
+
+ 
 /* Ex. 17. 
    From the following tables, write a SQL query to find the actor whose first name is 'Claire' and last name is 'Danes'. 
    Return director first name, last name, movie title, actor first name and last name, role.  
@@ -6707,6 +6727,24 @@ SELECT *
    Sample table: movie_direction
 */ 
  
+SELECT dir_fname AS "Director First Name",
+	   dir_lname AS "Director Last Name",
+	   mov_title AS "Movie Title",
+	   act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   role AS "Role"
+  FROM movie 
+  JOIN movie_cast 
+ USING (mov_id)
+  JOIN actor
+ USING (act_id)
+  JOIN movie_direction 
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE act_fname = 'Claire'
+   AND act_lname = 'Danes';
+ 
 /* Ex. 18. 
    From the following tables, write a SQL query to find those actors who have directed their movies. 
    Return actor first name, last name, movie title and role.  
@@ -6716,6 +6754,23 @@ SELECT *
    Sample table: director
    Sample table: movie_direction
 */  
+
+SELECT act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name",
+	   mov_title AS "Movie Title",
+	   role AS "Role"
+  FROM movie
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor
+ USING (act_id)
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE dir_fname = act_fname
+   AND act_lname = act_lname;
+
  
 /* Ex. 19. 
    From the following tables, write a SQL query to find the cast list of the movie ‘Chinatown’. 
@@ -6724,6 +6779,15 @@ SELECT *
    Sample table: movie_cast
    Sample table: actor
 */ 
+
+SELECT act_fname AS "Actor First Name",
+	   act_lname AS "Actor Last Name"
+  FROM movie
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor
+ USING (act_id) 
+ WHERE mov_title = 'Chinatown';
 
 /* Ex. 20.  
    From the following tables, write a SQL query to find those movies where actor’s first name is 'Harrison' 
@@ -6734,12 +6798,32 @@ SELECT *
    Sample table: actor
 */
 
+SELECT mov_title AS "Movie Title"
+  FROM movie 
+  JOIN movie_cast
+ USING (mov_id)
+  JOIN actor
+ USING (act_id)
+ WHERE act_fname = 'Harrison'
+   AND act_lname = 'Ford';
+  
+
 /* Ex. 21. 
    From the following tables, write a SQL query to find the highest-rated movies. 
    Return movie title, movie year, review stars and releasing country.  
    Sample table : movie
    Sample table : rating
 */ 
+
+SELECT mov_title AS "Movie title",
+	   mov_year AS "Release Date",
+	   rev_stars AS "Rating",
+	   mov_rel_country AS "Country"
+  FROM movie
+  JOIN rating
+ USING (mov_id)
+ WHERE rev_stars = (SELECT MAX(rev_stars) 
+	   				  FROM rating);
 
 /* Ex. 22. 
    From the following tables, write a SQL query to find the highest-rated ‘Mystery Movies’. 
@@ -6749,7 +6833,27 @@ SELECT *
    Sample table: movie_genres
    Sample table: rating
 */ 
- 
+
+  WITH CTE1 AS (SELECT * 
+  				 FROM movie
+  			 	 JOIN rating 
+ 				USING (mov_id)
+  				 JOIN movie_genres
+ 				USING (mov_id)
+  				 JOIN genres
+ 			    USING (gen_id))
+SELECT mov_title AS "Movie Title",
+	   mov_year AS "Release Date",
+	   rev_stars AS "Rating"
+  FROM CTE1
+  JOIN (SELECT gen_id, 
+  		       MAX(rev_stars) AS max_myst 
+  		  FROM CTE1 
+  		 GROUP BY gen_id, gen_title 
+  		HAVING gen_title = 'Mystery' ) AS CTE2
+    ON CTE1.gen_id = CTE2.gen_id
+   AND CTE1.rev_stars = CTE2.max_myst; 
+   				 
 /* Ex. 23. 
    From the following tables, write a SQL query to find the years when most of the ‘Mystery Movies’ produced. 
    Count the number of generic title and compute their average rating. 
@@ -6760,7 +6864,21 @@ SELECT *
    Sample table: movie_genres
    Sample table: rating
 */ 
- 
+
+SELECT mov_year AS "Date Release",
+	   gen_title AS "Genre",
+	   COUNT(*) AS "Num of title",
+	   AVG(rev_stars) AS "Rating"
+  FROM movie
+  JOIN movie_genres 
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id)
+  JOIN rating
+ USING (mov_id)
+ WHERE gen_title = 'Mystery'
+ GROUP BY mov_year, gen_title;
+ 	   
 /* Ex. 24. 
    From the following tables, write a query in SQL to generate a report, which contain the fields movie title, 
    name of the female actor, year of the movie, role, movie genres, the director, date of release, and rating of that movie.  
@@ -6773,6 +6891,51 @@ SELECT *
    Sample table: movie_direction
    Sample table: movie_cast
 */  
+-- 1
+SELECT mov_title AS "Movie Title",
+	   act_gender AS "Gender",
+	   mov_year AS "Release Year",
+	   role AS "Role",
+	   gen_title AS "Genre",
+	   CONCAT(dir_fname, ' ', dir_lname) AS "Director",
+	   mov_dt_rel AS "Release Date",
+	   rev_stars AS "Rating"
+  FROM movie
+  JOIN movie_genres
+ USING (mov_id)
+  JOIN genres
+ USING (gen_id)
+  JOIN rating
+ USING (mov_id)
+  JOIN movie_cast
+ USING (mov_id) 
+  JOIN actor
+ USING (act_id)
+  JOIN movie_direction
+ USING (mov_id)
+  JOIN director
+ USING (dir_id)
+ WHERE act_gender = 'F';
+
+-- 2
+ SELECT mov_title AS "Movie Title",
+	    act_gender AS "Gender",
+	    mov_year AS "Release Year",
+	    role AS "Role",
+	    gen_title AS "Genre",
+	    CONCAT(dir_fname, ' ', dir_lname) AS "Director",
+	    mov_dt_rel AS "Release Date",
+	    rev_stars AS "Rating"
+   FROM movie
+NATURAL JOIN movie_genres 
+NATURAL JOIN genres
+NATURAL JOIN rating
+NATURAL JOIN movie_cast 
+NATURAL JOIN actor
+NATURAL JOIN movie_direction
+NATURAL JOIN director
+  WHERE act_gender = 'F';
+
 
 
  /* PART 1. SQL VIEW */  
