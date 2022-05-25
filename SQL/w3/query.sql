@@ -7681,8 +7681,544 @@ SELECT player_name
    Sample table: soccer_country
 */ 
 
+-- 1 
+SELECT COUNT(*) AS "Germany's goals"
+  FROM goal_details
+ WHERE team_id = (SELECT country_id 
+					FROM soccer_country 
+				   WHERE country_name = 'Germany'); 
+				  
+-- 2
+SELECT COUNT(*) AS "Germany's Goals"	
+  FROM goal_details AS gd
+  JOIN soccer_country AS sc
+    ON gd.team_id = sc.country_id
+ WHERE sc.country_name = 'Germany';   
      
-SELECT *
+/* Ex. 18. 
+   From the following tables, write a SQL query to find the players who were the goalkeepers of England squad in 2016-EURO cup. 
+   Return player name, jersey number, club name.  
+   Sample table: player_mast
+   Sample table: soccer_country
+*/  
+
+-- 1
+SELECT player_name AS "Player Name",
+	   jersey_no AS "Jersey Number",
+	   playing_club AS "Club Name"
+  FROM player_mast
+ WHERE team_id = (SELECT country_id 
+ 					FROM soccer_country 
+ 				   WHERE country_name = 'Germany')
+   AND posi_to_play = 'GK';
+  
+-- 2
+SELECT pm.player_name AS "Player Name",
+	   pm.jersey_no AS "Jersey Number",
+	   pm.playing_club AS "Club Name"
+  FROM player_mast AS pm
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE sc.country_name = 'Germany'
+   AND pm.posi_to_play = 'GK';
+ 
+/* Ex. 19. 
+   From the following tables, write a SQL query to find the players under contract to Liverpool were in the Squad of England in 2016-EURO cup. 
+   Return player name, jersey number, position to play, age.  
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+-- 1  
+SELECT player_name AS "Player Name",
+	   jersey_no AS "Jersey Number",
+	   posi_to_play AS "Play Position",
+	   age AS "Age"
+  FROM player_mast 
+ WHERE team_id = (SELECT country_id 
+ 					FROM soccer_country 
+ 				   WHERE country_name = 'England')
+   AND playing_club = 'Liverpool';
+  
+-- 2
+SELECT pm.player_name AS "Player Name",
+	   pm.jersey_no AS "Jersey Number",
+	   pm.posi_to_play AS "Play Position",
+	   pm.age AS "Age"
+  FROM player_mast AS pm
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE sc.country_name = 'England'
+   AND pm.playing_club = 'Liverpool';
+  
+/* Ex. 20.  
+   From the following tables, write a SQL query to find the players who scored the last goal in the 2nd semi-final, i.e., 
+   50th match in EURO cup 2016. 
+   Return player name, goal time, goal half, country name.  
+   Sample table: player_mast
+   Sample table: goal_details
+   Sample table: soccer_country
+*/ 
+ 
+-- 1
+SELECT pm.player_name AS "Player Name",
+	   gd.goal_time AS "Goal Time",
+	   gd.goal_half AS "Goal half",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE gd.play_stage = 'S'
+ ORDER BY goal_id DESC
+ LIMIT 1;   
+
+-- 2
+SELECT pm.player_name AS "Player Name",
+	   gd.goal_time AS "Goal Time",
+	   gd.goal_half AS "Goal half",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE gd.match_no = 50
+   AND gd.goal_id = (SELECT MAX(goal_id) 
+  					   FROM goal_details
+  					 WHERE match_no = 50);  
+   
+/* Ex. 21. 
+   From the following tables, write a SQL query to find the captain of the EURO cup 2016 winning team from Portugal. 
+   Return the captain name.  
+   Sample table: player_mast
+   Sample table: match_captain
+   Sample table: match_details
+*/ 
+
+-- 1  					
+SELECT DISTINCT pm.player_name AS "Captain Name"
+  FROM player_mast AS pm
+  JOIN match_captain AS mc
+    ON pm.player_id = mc.player_captain
+  JOIN match_details AS md  
+    ON mc.team_id = md.team_id 
+ WHERE md.play_stage = 'F'
+   AND md.win_lose = 'W'; 
+
+-- 2
+SELECT player_name AS "Captain Name"
+  FROM player_mast 
+ WHERE player_id IN (SELECT player_captain 
+					   FROM match_captain 
+					  WHERE team_id IN (SELECT team_id 
+					 					  FROM match_details 
+					 					 WHERE play_stage = 'F' 
+					 					   AND win_lose = 'W')); 
+ 
+/* Ex. 22. 
+   From the following tables, write a SQL query to count the number of players played for 'France’ in the final. 
+   Return 'Number of players shared fields'.  
+   Sample table: player_in_out
+   Sample table: match_mast
+   Sample table: soccer_country
+*/ 
+
+-- 1
+SELECT 11 + COUNT(*) AS "Num of players"
+  FROM player_in_out AS pio
+  JOIN match_mast AS mm
+    ON pio.match_no = mm.match_no
+  JOIN soccer_country AS sc
+    ON pio.team_id =sc.country_id
+ WHERE sc.country_name = 'France'
+   AND mm.play_stage = 'F'
+   AND pio.in_out = 'I';
+    
+-- 2
+SELECT 11 + COUNT(*) AS "Num of players"
+  FROM player_in_out 
+ WHERE in_out = 'I'
+   AND match_no = (SELECT match_no 
+   					 FROM match_mast 
+   					WHERE play_stage= 'F')
+   AND team_id = (SELECT country_id 
+ 					FROM soccer_country 
+ 				   WHERE country_name = 'France');				  
+
+ /* Ex. 23. 
+   From the following tables, write a SQL query to find the Germany goalkeeper who didn't concede any goal in their group stage matches. 
+   Return goalkeeper name, jersey number.  
+   Sample table: player_mast
+   Sample table: match_details
+   Sample table: soccer_country
+*/ 
+    
+-- 1
+  WITH goal_comp_team AS (SELECT SUM(goal_score) AS sum_score
+  						   	FROM match_details 
+  						   WHERE match_no IN(SELECT match_no 
+  						   					   FROM match_details 
+  						   					  WHERE team_id = (SELECT country_id 
+  						   					  					 FROM soccer_country 
+  						   					  					WHERE country_name = 'Germany'))
+  						   	 AND team_id != (SELECT country_id 
+  						   				       FROM soccer_country 
+  						   					  WHERE country_name = 'Germany')
+  						   	 AND play_stage = 'G') 
+SELECT DISTINCT pm.player_name AS "Goalkeeper Name",
+	   pm.jersey_no AS "Jersey Number"
+  FROM player_mast AS pm
+  JOIN match_details AS md
+    ON pm.player_id = md.player_gk
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE md.play_stage = 'G'
+   AND sc.country_name = 'Germany'
+   AND 0 = (SELECT sum_score 
+  			  FROM goal_comp_team);
+   
+-- 2 			 
+SELECT player_name AS "Goalkeeper Name",
+	   jersey_no AS "Jersey Number"
+  FROM player_mast
+ WHERE posi_to_play = 'GK'
+   AND team_id = (SELECT country_id 
+   					FROM soccer_country 
+   				   WHERE country_name = 'Germany')
+   AND player_id IN (SELECT player_gk 
+   					   FROM match_details 
+   					  WHERE 0 = (SELECT SUM(goal_score) 
+   					    		   FROM match_details 
+   					    		  WHERE match_no IN (SELECT match_no 
+   					    		  					   FROM match_details 
+   					    		  					  WHERE team_id = (SELECT country_id 
+   					    		  					 					 FROM soccer_country 
+   					    		  					 				   WHERE country_name = 'Germany' ) )
+   					    		  	AND team_id	!= (SELECT country_id 
+   					    		  					  FROM soccer_country 
+   					    		  					 WHERE country_name = 'Germany')
+   					    		  	AND play_stage = 'G'));  
+   					    		  
+/* Ex. 24. 
+   From the following tables, write a SQL query to find the runners-up in Football EURO cup 2016. 
+   Return country name.  
+   Sample table: match_details
+   Sample table: soccer_country
+*/  
+
+-- 1   					    		  
+SELECT sc.country_name AS "Runner-up team"
+  FROM soccer_country AS sc
+  JOIN match_details AS md
+    ON sc.country_id = md.team_id
+ WHERE md.play_stage = 'F'
+   AND md.win_lose = 'L';
+  
+-- 2   					    		  
+SELECT country_name 
+  FROM soccer_country
+ WHERE country_id = (SELECT team_id 
+ 						 FROM match_details
+ 						WHERE play_stage = 'F'
+ 						  AND win_lose = 'L'); 
+ 
+/* Ex. 25. 
+   From the following tables, write a SQL query to find the maximum penalty shots taken by the teams. 
+   Return country name, maximum penalty shots.  
+   Sample table: soccer_country
+   Sample table: penalty_shootout
+*/ 
+-- 1 LIMIT
+SELECT sc.country_name AS "Country Name",
+       COUNT(*) AS "Maximum penalty shots"
+  FROM soccer_country AS sc
+  JOIN penalty_shootout AS ps
+    ON sc.country_id = ps.team_id  
+ GROUP BY sc.country_name
+ ORDER BY COUNT(*) DESC
+ LIMIT 3;
+
+-- 2 DENSE_RANK
+  WITH shootout_rank AS (SELECT sc.country_name,
+       					        COUNT(*) AS count_shoots,
+       						DENSE_RANK() OVER (ORDER BY COUNT(*) DESC)
+								    FROM soccer_country AS sc
+								    JOIN penalty_shootout AS ps
+								      ON sc.country_id = ps.team_id  
+								   GROUP BY sc.country_name)								   
+SELECT country_name AS "Country Name",
+       count_shoots AS "Maximum penalty shots"
+ FROM shootout_rank
+WHERE dense_rank = 1;
+
+-- 3 DENSE_RANK ALIAS
+  WITH shootout_rank AS (SELECT sc.country_name,
+       					        COUNT(*) AS count_shoots,
+       						DENSE_RANK() OVER d_rank
+								    FROM soccer_country AS sc
+								    JOIN penalty_shootout AS ps
+								      ON sc.country_id = ps.team_id  
+								   GROUP BY sc.country_name
+								  WINDOW d_rank AS (ORDER BY COUNT(*) DESC))
+SELECT country_name AS "Country Name",
+       count_shoots AS "Maximum penalty shots"
+ FROM shootout_rank
+WHERE dense_rank = 1;
+
+-- 4 MAX SUBQUERY
+  WITH country_shoots AS (SELECT sc.country_name,
+       					        COUNT(*) AS count_shoots
+								    FROM soccer_country AS sc
+								    JOIN penalty_shootout AS ps
+								      ON sc.country_id = ps.team_id  
+								   GROUP BY sc.country_name)
+SELECT country_name AS "Country Name",
+       count_shoots AS "Maximum penalty shots"
+ FROM country_shoots
+WHERE count_shoots = (SELECT MAX(count_shoots)
+					    FROM country_shoots);
+					   
+-- 5 HAVING
+SELECT sc.country_name AS "Country Name",
+       COUNT(*) AS "Maximum penalty shots"
+  FROM soccer_country AS sc
+  JOIN penalty_shootout AS ps
+    ON sc.country_id = ps.team_id  
+ GROUP BY sc.country_name
+HAVING COUNT(*) = (SELECT COUNT(*) 
+					 FROM penalty_shootout 
+					GROUP BY team_id 
+					ORDER BY COUNT(*) DESC 
+					LIMIT 1);					   
+					   
+					   					    		 
+ 
+/* Ex. 26. 
+   From the following tables, write a SQL query to find the maximum number of penalty shots taken by the players. 
+   Return country name, player name, jersey number and number of penalty shots.  
+   Sample table : player_mast
+   Sample table : penalty_shootout
+   Sample table : soccer_country
+*/ 
+
+				
+-- 1				
+SELECT sc.country_name AS "Country Name",
+	   pm.player_name AS "Player Name",
+	   pm.jersey_no AS "Jersey Number",
+	   COUNT(*) AS "Penalty Shots"
+  FROM soccer_country AS sc
+  JOIN player_mast AS pm
+    ON sc.country_id = pm.team_id 
+  JOIN penalty_shootout AS ps
+    ON pm.player_id = ps.player_id 
+ GROUP BY sc.country_name, pm.player_name, pm.jersey_no
+HAVING COUNT(*) = (SELECT COUNT(*)
+				     FROM penalty_shootout 
+				    GROUP BY player_id
+				    ORDER BY COUNT(*) DESC
+				    LIMIT 1);
+				   
+-- 2
+  WITH shoot_players AS (SELECT sc.country_name,
+  							    pm.player_name,
+  							    pm.jersey_no,
+  							    COUNT(*) AS count_shoot,
+  							    DENSE_RANK() OVER (ORDER BY COUNT(*) DESC)
+  					       FROM soccer_country AS sc
+  					       JOIN player_mast AS pm
+  					         ON sc.country_id  = pm.team_id
+  					       JOIN penalty_shootout AS ps 
+  					         ON pm.player_id = ps.player_id
+  					      GROUP BY sc.country_name, pm.player_name, pm.jersey_no)
+SELECT country_name AS "Country Name",
+	   player_name AS "Player Name",
+	   jersey_no AS "Jersey Number",
+	   count_shoot AS "Penalty Shots"
+  FROM shoot_players
+ WHERE dense_rank = 1;
+
+-- 3
+  WITH shoot_players AS (SELECT sc.country_name,
+  							    pm.player_name,
+  							    pm.jersey_no,
+  							    COUNT(*) AS count_shoot,
+  							    DENSE_RANK() OVER d_rank
+  					       FROM soccer_country AS sc
+  					       JOIN player_mast AS pm
+  					         ON sc.country_id  = pm.team_id
+  					       JOIN penalty_shootout AS ps 
+  					         ON pm.player_id = ps.player_id
+  					      GROUP BY sc.country_name, pm.player_name, pm.jersey_no
+  					     WINDOW d_rank AS (ORDER BY COUNT(*) DESC))
+SELECT country_name AS "Country Name",
+	   player_name AS "Player Name",
+	   jersey_no AS "Jersey Number",
+	   count_shoot AS "Penalty Shots"
+  FROM shoot_players
+ WHERE dense_rank = 1;
+ 
+
+/* Ex. 27. 
+    From the following table, write a SQL query to find those match where the highest number of penalty shots taken.  
+    Sample table : penalty_shootout
+*/ 
+
+-- 1
+SELECT match_no AS "Match",
+	   COUNT(*) AS "Penalty shots"
+  FROM penalty_shootout
+ GROUP BY match_no
+HAVING COUNT(*) = (SELECT COUNT(*)
+	 				 FROM penalty_shootout 
+	 				GROUP BY match_no 
+					ORDER BY COUNT(*) DESC
+	 				LIMIT 1);
+	 			
+-- 2	
+SELECT match_no AS "Match",
+	   COUNT(*) AS "Penalty shots"
+  FROM penalty_shootout
+ GROUP BY match_no
+HAVING COUNT(*) = (SELECT MAX(shots) 
+					 FROM (SELECT COUNT(*) AS shots 
+					 	   	 FROM penalty_shootout
+					 	   	GROUP BY match_no) AS max_shots); 	
+					 	   
+-- 3
+  WITH max_shots AS (SELECT match_no,
+  						    COUNT(*) AS shots,
+  						    DENSE_RANK() OVER (ORDER BY COUNT(*) DESC)
+  					   FROM penalty_shootout
+  					  GROUP BY match_no)
+SELECT match_no AS "Match",
+	   shots AS "Penalty shots"
+  FROM max_shots	   
+  WHERE dense_rank = 1;	   
+  
+/* Ex. 28. 
+   Find the match no. and teams who played the match where highest number of penalty shots had been taken
+   Return match number, country name.  
+   Sample table: penalty_shootout
+   Sample table: soccer_country
+*/  
+ 
+-- 1 
+  WITH shot_country AS (SELECT ps.match_no,
+  							   sc.country_name,
+  							   DENSE_RANK() OVER (ORDER BY COUNT(*) DESC)
+  						  FROM penalty_shootout AS ps
+  						  JOIN soccer_country AS sc
+  						    ON ps.team_id = sc.country_id 
+  						 GROUP BY ps.match_no, sc.country_name)
+SELECT match_no AS "Match Number",
+	   country_name AS "Country Name"
+  FROM shot_country
+ WHERE dense_rank = 1; 
+
+-- 2
+SELECT ps.match_no AS "Match Number",
+       sc.country_name AS "Country Name"
+  FROM penalty_shootout AS ps
+  JOIN soccer_country AS sc
+    ON ps.team_id = sc.country_id
+ GROUP BY ps.match_no, sc.country_name 
+HAVING COUNT(*) = (SELECT MAX(shots) 
+  					 FROM (SELECT COUNT(*) AS shots 
+  					 		 FROM penalty_shootout
+  					 		GROUP BY match_no, team_id) AS count_shots); 
+ 
+
+/* Ex. 29. 
+   From the following tables, write a SQL query to find the player of 'Portugal' who taken the seventh kick against 'Poland'. 
+   Return match number, player name and kick number.  
+   Sample table: penalty_shootout
+   Sample table: soccer_country
+   Sample table: player_mast
+*/  
+
+-- 1  
+SELECT ps.match_no AS "Match Number",
+	   pm.player_name AS "Player Name",
+	   ps.kick_no AS "Kick number"
+  FROM penalty_shootout AS ps
+  JOIN player_mast AS pm
+    ON ps.player_id = pm.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE sc.country_name = 'Portugal'
+   AND ps.kick_no = 7
+   AND ps.match_no = (SELECT match_no 
+  						FROM (SELECT DISTINCT match_no 
+  								FROM penalty_shootout 
+  							   WHERE team_id = (SELECT country_id 
+  							      				  FROM soccer_country
+  							      				 WHERE country_name = 'Poland')) AS pol
+	  					JOIN (SELECT DISTINCT match_no 
+  								FROM penalty_shootout 
+  							   WHERE team_id = (SELECT country_id 
+  							      				  FROM soccer_country
+  							      				 WHERE country_name = 'Portugal')) AS por
+					   USING (match_no));
+
+-- 2					  
+  WITH match_data AS (SELECT * 
+  					    FROM penalty_shootout AS ps
+  						JOIN player_mast AS pm
+    					  ON ps.player_id = pm.player_id
+  						JOIN soccer_country AS sc
+    					  ON pm.team_id = sc.country_id)
+SELECT match_no AS "Match Number",
+	   player_name AS "Player Name",
+	   kick_no AS "Kick number"
+  FROM match_data
+ WHERE country_name = 'Portugal'
+   AND kick_no = 7
+   AND match_no = (SELECT DISTINCT match_no
+   						FROM (SELECT match_no 
+   								FROM match_data 
+   							   WHERE country_name = 'Poland') AS pol
+   						JOIN (SELECT match_no 
+   								FROM match_data 
+   							   WHERE country_name = 'Portugal') AS por	
+   					   USING (match_no));
+   					  
+-- 3   					  
+    WITH match_data AS (SELECT * 
+  					    FROM penalty_shootout AS ps
+  						JOIN player_mast AS pm
+    					  ON ps.player_id = pm.player_id
+  						JOIN soccer_country AS sc
+    					  ON pm.team_id = sc.country_id),
+    	 match_por_pol AS (SELECT DISTINCT match_no
+   							 FROM (SELECT match_no 
+   								     FROM match_data 
+   							        WHERE country_name = 'Poland') AS pol
+   						     JOIN (SELECT match_no 
+   								     FROM match_data 
+   							        WHERE country_name = 'Portugal') AS por	
+   					        USING (match_no))
+SELECT match_no AS "Match Number",
+	   player_name AS "Player Name",
+	   kick_no AS "Kick number"
+  FROM match_data AS md
+  JOIN match_por_pol AS mpp
+ USING (match_no) 
+ WHERE country_name = 'Portugal'
+   AND kick_no = 7;
+					  					 	
+
+ 
+/* Ex. 30.  
+   From the following tables, write a SQL query to find the stage of match where penalty kick number 23 had been taken. 
+   Return match number, play_stage.  
+   Sample table: match_mast
+   Sample table: penalty_shootout
+*/ 
+ 
+ SELECT *
   FROM soccer_venue 
  LIMIT 100;
 
@@ -7711,99 +8247,10 @@ SELECT *
   FROM player_booked;  
  
 SELECT *
-  FROM penalty_gk;
-/* Ex. 18. 
-   From the following tables, write a SQL query to find the players who were the goalkeepers of England squad in 2016-EURO cup. 
-   Return player name, jersey number, club name.  
-   Sample table: player_mast
-   Sample table: soccer_country
-*/  
+  FROM penalty_gk;   	
  
-/* Ex. 19. 
-   From the following tables, write a SQL query to find the players under contract to Liverpool were in the Squad of England in 2016-EURO cup. 
-   Return player name, jersey number, position to play, age.  
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 20.  
-   From the following tables, write a SQL query to find the players who scored the last goal in the 2nd semi-final, i.e., 
-   50th match in EURO cup 2016. Return player name, goal time, goal half, country name.  
-   Sample table: player_mast
-   Sample table: goal_details
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 21. 
-   From the following tables, write a SQL query to find the captain of the EURO cup 2016 winning team from Portugal. 
-   Return the captain name.  
-   Sample table: player_mast
-   Sample table: match_captain
-   Sample table: match_details
-*/ 
-
-/* Ex. 22. 
-   From the following tables, write a SQL query to count the number of players played for 'France’ in the final. 
-   Return 'Number of players shared fields'.  
-   Sample table: player_in_out
-   Sample table: match_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 23. 
-   From the following tables, write a SQL query to find the Germany goalkeeper who didn't concede any goal in their group stage matches. 
-   Return goalkeeper name, jersey number.  
-   Sample table: player_mast
-   Sample table: match_details
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 24. 
-   From the following tables, write a SQL query to find the runners-up in Football EURO cup 2016. 
-   Return country name.  
-   Sample table: match_details
-   Sample table: soccer_country
-*/  
-
-/* Ex. 25. 
-   From the following tables, write a SQL query to find the maximum penalty shots taken by the teams. 
-   Return country name, maximum penalty shots.  
-   Sample table: soccer_country
-   Sample table: penalty_shootout
-*/ 
-
-/* Ex. 26. 
-   From the following tables, write a SQL query to find the maximum number of penalty shots taken by the players. 
-   Return country name, player name, jersey number and number of penalty shots.  
-   Sample table : player_mast
-   Sample table : penalty_shootout
-   Sample table : soccer_country
-*/ 
- 
-/* Ex. 27. 
-    From the following table, write a SQL query to find those match where the highest number of penalty shots taken.  
-    Sample table : penalty_shootout
-*/ 
- 
-/* Ex. 28. 
-   From the following table, write a SQL query to find the match number where highest number of penalty shots had been taken. 
-   Return match number, country name.  
-   Sample table: penalty_shootout
-*/  
- 
-/* Ex. 29. 
-   From the following tables, write a SQL query to find the player of 'Portugal' who taken the seventh kick against 'Poland'. 
-   Return match number, player name and kick number.  
-   Sample table: penalty_shootout
-   Sample table: soccer_country
-*/  
- 
-/* Ex. 30.  
-   From the following tables, write a SQL query to find the stage of match where penalty kick number 23 had been taken. 
-   Return match number, play_stage.  
-   Sample table: match_mast
-   Sample table: penalty_shootout
-*/ 
+SELECT *
+  FROM match_captain;
  
 /* Ex. 31. 
    From the following tables, write a SQL query to find the venues where penalty shoot-out matches played. 
