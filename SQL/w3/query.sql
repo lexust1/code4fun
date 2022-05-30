@@ -8217,8 +8217,408 @@ SELECT match_no AS "Match Number",
    Sample table: match_mast
    Sample table: penalty_shootout
 */ 
+
+ -- 1 
+SELECT mm.match_no AS "Match Number",
+	   mm.play_stage AS "Play Stage"
+  FROM match_mast AS mm
+  JOIN penalty_shootout AS ps
+ USING (match_no)
+ WHERE ps.kick_id = 23;
+
+-- 2
+SELECT match_no AS "Match Number",
+	   play_stage AS "Play Stage"
+  FROM match_mast 
+ WHERE match_no = (SELECT match_no 
+					 FROM penalty_shootout 
+					WHERE kick_id = 23); 
  
- SELECT *
+/* Ex. 31. 
+   From the following tables, write a SQL query to find the venues where penalty shoot-out matches played. 
+   Return venue name.  
+   Sample table: soccer_venue
+   Sample table: match_mast
+   Sample table: penalty_shootout
+*/ 
+
+-- 1				
+SELECT DISTINCT sc.venue_name AS "Venue Name"
+  FROM soccer_venue AS sc
+  JOIN match_mast AS mm
+    ON sc.venue_id = mm.venue_id
+  JOIN penalty_shootout AS ps
+    ON mm.match_no = ps.match_no;   
+   
+-- 2
+SELECT DISTINCT venue_name AS "Venue Name"
+  FROM soccer_venue
+ WHERE venue_id IN (SELECT venue_id 
+ 					 FROM match_mast
+ 					WHERE match_no IN (SELECT match_no 
+ 										FROM penalty_shootout)); 
+			
+/* Ex. 32. 
+   From the following tables, write a SQL query to find the date when penalty shootout matches played. 
+   Return playing date.  
+   Sample table: match_mast
+   Sample table: penalty_shootout
+*/ 
+
+-- 1
+SELECT DISTINCT mm.play_date AS "Playing Date"
+  FROM match_mast AS mm
+  JOIN penalty_shootout AS ps
+    ON mm.match_no = ps.match_no;   
+   
+-- 2
+SELECT DISTINCT play_date
+  FROM match_mast
+ WHERE match_no IN (SELECT match_no
+ 					 FROM penalty_shootout); 
+ 									 								 									
+/* Ex. 33. 
+   From the following table, write a SQL query to find the quickest goal at the EURO cup 2016, after 5 minutes. 
+   Return 'Quickest goal after 5 minutes'.  
+   Sample table: goal_details
+*/  
+
+SELECT goal_id AS "Quickest goal after 5 minutes",
+	   goal_time AS "Time"
+  FROM goal_details
+ WHERE goal_time IN (SELECT MIN(goal_time) 
+ 					   FROM goal_details 
+ 					  WHERE goal_time > 5);
+ 					
+				
+ 
+/* PART 15.3. JOINS */  
+ 
+/* Ex. 1. 
+   From the following tables, write a SQL query to find the venue where EURO cup 2016 final match held. 
+   Return venue name, city.  
+   Sample table: soccer_venue
+   Sample table: soccer_city
+   Sample table: match_mast
+*/ 
+
+SELECT venue_name AS "Venue Name",
+	   city AS "City"
+  FROM soccer_venue
+  JOIN soccer_city
+ USING (city_id)
+  JOIN match_mast
+ USING (venue_id)
+ WHERE play_stage = 'F';
+
+/* Ex. 2. 
+   From the following tables, write a SQL query to find the number of goal scored by each team in every match within normal play schedule. R
+   eturn match number, country name and goal score. 
+   Sample table: match_details
+   Sample table: soccer_country
+*/ 
+
+SELECT md.match_no AS "Match Number",
+	   sc.country_name AS "Country",
+	   SUM(md.goal_score) AS "Goals"
+  FROM match_details AS md 
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE decided_by = 'N'   
+ GROUP BY md.match_no, sc.country_name;    
+	
+/* Ex. 3. 
+   From the following tables, write a SQL query to count the number of goals scored by each player within normal play schedule. 
+   Group the result set on player name and country name and sorts the result-set according to the highest to the lowest scorer. 
+   Return player name, number of goals and country name.  
+   Sample table: goal_details
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+ 
+SELECT pm.player_name AS "Player Name",
+	   COUNT(*) AS "Goals",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd 
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON gd.team_id = sc.country_id 
+ WHERE gd.goal_schedule = 'NT'
+ GROUP BY pm.player_name, sc.country_name
+ ORDER BY COUNT(*) DESC;
+
+/* Ex. 4. 
+   From the following tables, write a SQL query to find the highest individual scorer in EURO cup 2016. Return player name, country name 
+   and highest individual scorer.  
+   Sample table: goal_details
+   Sample table: player_mast
+   Sample table: soccer_country
+*/  
+
+-- 1
+SELECT pm.player_name AS "Player Name",
+	   COUNT(*) AS "Goals",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd 
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON gd.team_id = sc.country_id 
+ GROUP BY pm.player_name, sc.country_name
+HAVING COUNT(*) = (SELECT COUNT(*)
+					 FROM goal_details
+					GROUP BY player_id 
+					ORDER BY COUNT(*) DESC
+				    LIMIT 1);
+				   
+-- 2
+SELECT pm.player_name AS "Player Name",
+	   COUNT(*) AS "Goals",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd 
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON gd.team_id = sc.country_id 
+ GROUP BY pm.player_name, sc.country_name
+HAVING COUNT(*) = (SELECT MAX(count_goals)
+ 					 FROM (SELECT COUNT(*) AS count_goals
+ 							 FROM goal_details 
+ 							GROUP BY player_id) AS goals);				   
+
+-- 3				   
+  WITH max_goals AS (SELECT MAX(count_goals) AS max_count_goals 
+				       FROM (SELECT COUNT(*) AS count_goals
+				               FROM goal_details
+				              GROUP BY player_id) AS goals)
+SELECT pm.player_name AS "Player Name",
+	   COUNT(*) AS "Goals",
+	   sc.country_name AS "Country"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd 
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON gd.team_id = sc.country_id 
+ GROUP BY pm.player_name, sc.country_name
+HAVING COUNT(*) = (SELECT max_count_goals 
+   					 FROM max_goals);
+   					
+-- 4 					
+  WITH player_goals AS (SELECT pm.player_name,
+  						       COUNT(*) AS count_goals,
+  						       sc.country_name
+  						  FROM player_mast AS pm
+  						  JOIN goal_details AS gd
+  						    ON pm.player_id = gd.player_id
+  						  JOIN soccer_country AS sc
+  						    ON gd.team_id = sc.country_id
+  						 GROUP BY pm.player_name, sc.country_name)
+SELECT player_name AS "Player Name",
+	   count_goals AS "Goals",
+	   country_name AS "Country"
+  FROM player_goals
+ WHERE count_goals = (SELECT MAX(count_goals)
+						FROM player_goals);						 
+
+-- 5 					
+  WITH player_goals AS (SELECT pm.player_name,
+  						       COUNT(*) AS count_goals,
+  						       sc.country_name
+  						  FROM player_mast AS pm
+  						  JOIN goal_details AS gd
+  						    ON pm.player_id = gd.player_id
+  						  JOIN soccer_country AS sc
+  						    ON gd.team_id = sc.country_id
+  						 GROUP BY pm.player_name, sc.country_name)
+SELECT player_name AS "Player Name",
+	   count_goals AS "Goals",
+	   country_name AS "Country"
+  FROM (SELECT *, 
+  			   DENSE_RANK() OVER (ORDER BY count_goals DESC)
+  		  FROM player_goals) AS player_goals_rank
+ WHERE dense_rank = 1;						 
+	
+ 
+/* Ex. 5. 
+   From the following tables, write a SQL query to find the scorer in the final of EURO cup 2016. 
+   Return player name, jersey number and country name.  
+   Sample table: goal_details
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT pm.player_name AS "Player Name",
+	   pm.jersey_no AS "Jersey Number",
+	   sc.country_name AS "Country name"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE gd.play_stage = 'F';
+
+/* Ex. 6. 
+   From the following tables, write a SQL query to find the country where Football EURO cup 2016 held. 
+   Return country name.  
+   Sample table: soccer_country
+   Sample table: soccer_city
+   Sample table: soccer_venue
+*/ 
+ 
+SELECT DISTINCT country_name
+  FROM soccer_country
+  JOIN soccer_city
+ USING (country_id); 
+
+/* Ex. 7. 
+   From the following tables, write a SQL query to find the player who scored first goal of EURO cup 2016. 
+   Return player_name, jersey_no, country_name, goal_time, play_stage, goal_schedule, goal_half.  
+   Sample table: soccer_country
+   Sample table: player_mast
+   Sample table: goal_details
+*/ 
+
+SELECT pm.player_name AS "Player Name",
+	   pm.jersey_no AS "Jersey Number",
+	   sc.country_name AS "Country Name",
+	   gd.goal_time AS "Goat Time",
+	   gd.play_stage AS "Play Stage",
+	   gd.goal_schedule AS "Goal Schedule",
+	   gd.goal_half AS "Goal Half"
+  FROM player_mast AS pm
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id 
+ WHERE gd.goal_id = 1;   
+
+/* Ex. 8. 
+   From the following tables, write a SQL query to find the referee who managed the opening match. 
+   Return referee name, country name.  
+   Sample table: soccer_country
+   Sample table: match_mast
+   Sample table: referee_mast
+*/  
+
+SELECT rm.referee_name AS "Refere Name",
+	   sc.country_name AS "Country Name"
+  FROM match_mast AS mm
+  JOIN referee_mast AS rm
+    ON mm.referee_id = rm.referee_id
+  JOIN soccer_country AS sc
+    ON rm.country_id = sc.country_id
+ WHERE mm.match_no = 1;   
+ 
+/* Ex. 9. 
+   From the following tables, write a SQL query to find the referee who managed the final match. 
+   Return referee name, country name.  
+   Sample table: soccer_country
+   Sample table: match_mast
+   Sample table: referee_mast
+*/ 
+
+-- 1
+SELECT rm.referee_name AS "Refere Name",
+	   sc.country_name AS "Country Name"
+  FROM match_mast AS mm
+  JOIN referee_mast AS rm
+    ON mm.referee_id = rm.referee_id
+  JOIN soccer_country AS sc
+    ON rm.country_id = sc.country_id
+ WHERE mm.match_no = (SELECT MAX(match_no) 
+					    FROM match_mast);   
+
+-- 2					   
+SELECT rm.referee_name AS "Refere Name",
+	   sc.country_name AS "Country Name"
+  FROM match_mast AS mm
+  JOIN referee_mast AS rm
+    ON mm.referee_id = rm.referee_id
+  JOIN soccer_country AS sc
+    ON rm.country_id = sc.country_id
+ WHERE mm.play_stage = 'F';   
+
+/* Ex. 10.  
+   From the following tables, write a SQL query to find the referee who assisted the referee in the opening match. 
+   Return associated referee name, country name.  
+   Sample table: asst_referee_mast
+   Sample table: soccer_country
+   Sample table: match_details
+*/
+
+SELECT arm.ass_ref_name AS "Ass. referee name",
+       sc.country_name AS "Country Name"
+  FROM asst_referee_mast AS arm
+  JOIN soccer_country AS sc
+    ON arm.country_id = sc.country_id
+  JOIN match_details AS md
+    ON arm.ass_ref_id  = md.ass_ref
+ WHERE md.match_no = 1;
+  
+/* Ex. 11. 
+   From the following tables, write a SQL query to find the referee who assisted the referee in the final match. 
+   Return associated referee name, country name.  
+   Sample table: asst_referee_mast
+   Sample table: soccer_country
+   Sample table: match_details
+*/ 
+
+SELECT arm.ass_ref_name AS "Ass. referee name",
+       sc.country_name AS "Country Name"
+  FROM asst_referee_mast AS arm
+  JOIN soccer_country AS sc
+    ON arm.country_id = sc.country_id
+  JOIN match_details AS md
+    ON arm.ass_ref_id  = md.ass_ref
+ WHERE md.play_stage = 'F';
+
+/* Ex. 12. 
+   From the following tables, write a SQL query to find the city where the opening match of EURO cup 2016 played. 
+   Return venue name, city.  
+   Sample table: soccer_venue
+   Sample table: soccer_city
+   Sample table: match_mast
+*/ 
+ 
+SELECT venue_name AS "Venue Name",
+	   city AS "City"
+  FROM soccer_venue 
+  JOIN soccer_city
+ USING (city_id)
+  JOIN match_mast
+ USING (venue_id)
+ WHERE match_no = 1;
+
+/* Ex. 13. 
+   From the following tables, write a SQL query to find the stadium hosted the final match of EURO cup 2016. 
+   Return venue_name, city, aud_capacity, audience.  
+   Sample table: soccer_venue
+   Sample table: soccer_city
+   Sample table: match_mast
+*/ 
+
+SELECT venue_name AS "Venue Name",
+ 	   city AS "City",
+ 	   aud_capacity AS "Capacity",
+ 	   audence AS "Audence"
+  FROM soccer_venue 
+  JOIN soccer_city
+ USING (city_id)
+  JOIN match_mast
+ USING (venue_id)
+ WHERE play_stage = 'F';
+ 	   
+/* Ex. 14. 
+   From the following tables, write a SQL query to count the number of matches played in each venue. 
+   Sort the result-set on venue name. Return Venue name, city, and number of matches.  
+   Sample table:soccer_venue
+   Sample table: soccer_city
+   Sample table: match_mast
+*/  
+
+
+SELECT *
   FROM soccer_venue 
  LIMIT 100;
 
@@ -8250,143 +8650,16 @@ SELECT *
   FROM penalty_gk;   	
  
 SELECT *
-  FROM match_captain;
+  FROM match_captain; 	
  
-/* Ex. 31. 
-   From the following tables, write a SQL query to find the venues where penalty shoot-out matches played. 
-   Return venue name.  
-   Sample table: soccer_venue
-   Sample table: match_mast
-   Sample table: penalty_shootout
-*/ 
+SELECT * 
+  FROM soccer_city;
+ 
+SELECT *
+  FROM referee_mast;
 
-/* Ex. 32. 
-   From the following tables, write a SQL query to find the date when penalty shootout matches played. 
-   Return playing date.  
-   Sample table: match_mast
-   Sample table: penalty_shootout
-*/ 
- 
-/* Ex. 33. 
-   From the following table, write a SQL query to find the quickest goal at the EURO cup 2016, after 5 minutes. 
-   Return 'Quickest goal after 5 minutes'.  
-   Sample table: goal_details
-*/  
- 
- 
-/* PART 15.3. JOINS */  
- 
-/* Ex. 1. 
-   From the following tables, write a SQL query to find the venue where EURO cup 2016 final match held. 
-   Return venue name, city.  
-   Sample table: soccer_venue
-   Sample table: soccer_city
-   Sample table: match_mast
-*/ 
-
-/* Ex. 2. 
-   From the following tables, write a SQL query to find the number of goal scored by each team in every match within normal play schedule. R
-   eturn match number, country name and goal score. 
-   Sample table: match_details
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 3. 
-   From the following tables, write a SQL query to count the number of goals scored by each player within normal play schedule. 
-   Group the result set on player name and country name and sorts the result-set according to the highest to the lowest scorer. 
-   Return player name, number of goals and country name.  
-   Sample table: goal_details
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 4. 
-   From the following tables, write a SQL query to find the highest individual scorer in EURO cup 2016. Return player name, country name 
-   and highest individual scorer.  
-   Sample table: goal_details
-   Sample table: player_mast
-   Sample table: soccer_country
-*/  
-
-/* Ex. 5. 
-   From the following tables, write a SQL query to find the scorer in the final of EURO cup 2016. 
-   Return player name, jersey number and country name.  
-   Sample table: goal_details
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 6. 
-   From the following tables, write a SQL query to find the country where Football EURO cup 2016 held. 
-   Return country name.  
-   Sample table: soccer_country
-   Sample table: soccer_city
-   Sample table: soccer_venue
-*/ 
- 
-/* Ex. 7. 
-   From the following tables, write a SQL query to find the player who scored first goal of EURO cup 2016. 
-   Return player_name, jersey_no, country_name, goal_time, play_stage, goal_schedule, goal_half.  
-   Sample table: soccer_country
-   Sample table: player_mast
-   Sample table: goal_details
-*/ 
- 
-/* Ex. 8. 
-   From the following tables, write a SQL query to find the referee who managed the opening match. 
-   Return referee name, country name.  
-   Sample table: soccer_country
-   Sample table: match_mast
-   Sample table: referee_mast
-*/  
- 
-/* Ex. 9. 
-   From the following tables, write a SQL query to find the referee who managed the final match. 
-   Return referee name, country name.  
-   Sample table: soccer_country
-   Sample table: match_mast
-   Sample table: referee_mast
-*/ 
-
-/* Ex. 10.  
-   From the following tables, write a SQL query to find the referee who assisted the referee in the opening match. 
-   Return associated referee name, country name.  
-   Sample table: asst_referee_mast
-   Sample table: soccer_country
-   Sample table: match_details
-*/
- 
-/* Ex. 11. 
-   From the following tables, write a SQL query to find the referee who assisted the referee in the final match. 
-   Return associated referee name, country name.  
-   Sample table: asst_referee_mast
-   Sample table: soccer_country
-   Sample table: match_details
-*/ 
-
-/* Ex. 12. 
-   From the following tables, write a SQL query to find the city where the opening match of EURO cup 2016 played. 
-   Return venue name, city.  
-   Sample table: soccer_venue
-   Sample table: soccer_city
-   Sample table: match_mast
-*/ 
- 
-/* Ex. 13. 
-   From the following tables, write a SQL query to find the stadium hosted the final match of EURO cup 2016. 
-   Return venue_name, city, aud_capacity, audience.  
-   Sample table: soccer_venue
-   Sample table: soccer_city
-   Sample table: match_mast
-*/ 
- 
-/* Ex. 14. 
-   From the following tables, write a SQL query to count the number of matches played in each venue. 
-   Sort the result-set on venue name. Return Venue name, city, and number of matches.  
-   Sample table:soccer_venue
-   Sample table: soccer_city
-   Sample table: match_mast
-*/  
+SELECT *  
+  FROM asst_referee_mast;
 
 /* Ex. 15. 
    From the following tables, write a SQL query to find the player who was the first player to be sent off at the tournament EURO cup 2016. 
