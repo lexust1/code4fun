@@ -8611,12 +8611,185 @@ SELECT venue_name AS "Venue Name",
  	   
 /* Ex. 14. 
    From the following tables, write a SQL query to count the number of matches played in each venue. 
-   Sort the result-set on venue name. Return Venue name, city, and number of matches.  
+   Sort the result-set on venue name. 
+   Return Venue name, city, and number of matches.  
    Sample table:soccer_venue
    Sample table: soccer_city
    Sample table: match_mast
 */  
 
+
+SELECT venue_name AS "Venue Name",
+	   city AS "City Name",
+	   COUNT(*) AS "Num of matches"
+  FROM soccer_venue 
+  JOIN soccer_city
+ USING (city_id)
+  JOIN match_mast
+ USING (venue_id) 
+ GROUP BY venue_name, city
+ ORDER BY venue_name;
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find the player who was the first player to be sent off at the tournament EURO cup 2016. 
+   Return match Number, country name and player name.  
+   Sample table: player_booked
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+-- 1
+SELECT pb.match_no AS "Match Number",
+	   sc.country_name AS "Country",
+	   pm.player_name AS "Player Name"
+  FROM player_booked AS pb
+  JOIN player_mast AS pm
+    ON pb.player_id = pm.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE pb.sent_off = 'Y'
+   AND pb.match_no = (SELECT MIN(match_no)
+   						FROM player_booked 
+   					   WHERE sent_off = 'Y');
+   					  
+-- 2
+SELECT pb.match_no AS "Match Number",
+	   sc.country_name AS "Country",
+	   pm.player_name AS "Player Name"
+  FROM player_booked AS pb
+  JOIN player_mast AS pm
+    ON pb.player_id = pm.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE pb.sent_off = 'Y'
+ ORDER BY pb.match_no
+ LIMIT 1;    					  
+   					 
+/* Ex. 16. 
+   From the following tables, write a SQL query to find those teams that scored only one goal to the tournament. 
+   Return country_name as "Team", team in the group, goal_for.
+   Sample table: soccer_team
+   Sample table: soccer_country
+*/ 
+ 
+SELECT sc.country_name AS "Country",
+	   st.team_group AS "Group",
+	   st.goal_for AS "Goals"
+  FROM soccer_country AS sc
+  JOIN soccer_team AS st
+    ON sc.country_id = st.team_id
+ WHERE goal_for = 1;    
+
+/* Ex. 17. 
+   From the following tables, write a SQL query to count the yellow cards received by each country. 
+   Return country name and number of yellow cards. 
+   Sample table: soccer_country
+   Sample table: player_booked
+*/ 
+
+SELECT sc.country_name AS "Country",
+	   COUNT(*) AS "Yellow cards"
+  FROM soccer_country AS sc
+  JOIN player_booked AS pb
+    ON sc.country_id = pb.team_id
+ GROUP BY sc.country_name;    
+
+/* Ex. 18. 
+   From the following tables, write a SQL query to count number of goals that has seen. 
+   Return venue name and number of goals. 
+   Sample table: soccer_country
+   Sample table: goal_details
+   Sample table: match_mast
+   Sample table:soccer_venue
+*/  
+
+SELECT venue_name AS "Venue Name",
+	   COUNT(*) AS "Num of goals"
+  FROM soccer_venue
+  JOIN match_mast
+ USING (venue_id)
+  JOIN goal_details
+ USING (match_no)
+ GROUP BY venue_name;
+
+/* Ex. 19. 
+   From the following tables, write a SQL query to find the match where no stoppage time added in first half of play. 
+   Return match number, country name. 
+   Sample table: match_details
+   Sample table: match_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT mm.match_no AS "Match Number",
+	   sc.country_name AS "Country"
+  FROM match_details AS md
+  JOIN match_mast AS mm
+    ON md.match_no = mm.match_no 
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE stop1_sec = 0;   
+
+/* Ex. 20.  
+   From the following tables, write a SQL query to find the team(s) who conceded the most goals in EURO cup 2016. 
+   Return country name, team group and match played. 
+   Sample table: soccer_team
+   Sample table: soccer_country
+*/ 
+ 
+SELECT sc.country_name AS "Country name",
+	   st.team_group AS "Team Group",
+	   st.match_played AS "Match Played"
+  FROM soccer_country AS sc
+  JOIN soccer_team AS st
+    ON sc.country_id = st.team_id
+ WHERE st.goal_agnst = (SELECT MAX(goal_agnst) 
+					      FROM soccer_team);   
+
+/* Ex. 21. 
+   From the following tables, write a SQL query to find those matches where highest stoppage time added in 2nd half of play. 
+   Return match number, country name, stoppage time(sec.). 
+   Sample table: match_details
+   Sample table: match_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT mm.match_no AS "Match Number",
+	   sc.country_name AS "Country Name",
+	   mm.stop2_sec AS "Stoppage time"
+  FROM match_details AS md
+  JOIN match_mast AS mm
+    ON md.match_no = mm.match_no
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE mm.stop2_sec = (SELECT MAX(stop2_sec)
+ 						 FROM match_mast);
+					  
+/* Ex. 22. 
+   From the following tables, write a SQL query to find those matches ending with a goalless draw in-group stage of play. 
+   Return match number, country name. 
+   Sample table: match_details
+   Sample table: soccer_country
+*/ 
+
+SELECT md.match_no AS "Match Number",
+	   sc.country_name AS "Country Name"
+  FROM match_details AS md
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE md.win_lose = 'D'
+   AND goal_score = 0
+   AND play_stage = 'G';
+  						
+/* Ex. 23. 
+   From the following tables, write a SQL query to find those match(s) where the 2nd highest stoppage time had been added 
+   in the second half of play. 
+   Return match number, country name and stoppage time. 
+   Sample table: match_mast
+   Sample table: match_details
+   Sample table: soccer_country
+*/ 
+
+   
 
 SELECT *
   FROM soccer_venue 
@@ -8660,77 +8833,9 @@ SELECT *
 
 SELECT *  
   FROM asst_referee_mast;
-
-/* Ex. 15. 
-   From the following tables, write a SQL query to find the player who was the first player to be sent off at the tournament EURO cup 2016. 
-   Return match Number, country name and player name.  
-   Sample table: player_booked
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 16. 
-   From the following tables, write a SQL query to find the player who was the first player to be sent off at the tournament EURO cup 2016. 
-   Return match Number, country name and player name.  
-   Sample table: player_booked
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
  
-/* Ex. 17. 
-   From the following tables, write a SQL query to count the yellow cards received by each country. 
-   Return country name and number of yellow cards. 
-   Sample table: soccer_country
-   Sample table: player_booked
-*/ 
- 
-/* Ex. 18. 
-   From the following tables, write a SQL query to count number of goals that has seen. Return venue name and number of goals. 
-   Sample table: soccer_country
-   Sample table: goal_details
-   Sample table: match_mast
-   Sample table:soccer_venue
-*/  
- 
-/* Ex. 19. 
-   From the following tables, write a SQL query to find the match where no stoppage time added in first half of play. 
-   Return match number, country name. 
-   Sample table: match_details
-   Sample table: match_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 20.  
-   From the following tables, write a SQL query to find the team(s) who conceded the most goals in EURO cup 2016. 
-   Return country name, team group and match played. 
-   Sample table: soccer_team
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 21. 
-   From the following tables, write a SQL query to find those matches where highest stoppage time added in 2nd half of play. 
-   Return match number, country name, stoppage time(sec.). 
-   Sample table: match_details
-   Sample table: match_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 22. 
-   From the following tables, write a SQL query to find those matches ending with a goalless draw in-group stage of play. 
-   Return match number, country name. 
-   Sample table: match_details
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 23. 
-   From the following tables, write a SQL query to find those match(s) where the 2nd highest stoppage time had been added 
-   in the second half of play. 
-   Return match number, country name and stoppage time. 
-   Sample table: match_mast
-   Sample table: match_details
-   Sample table: soccer_country
-*/ 
- 
+SELECT *
+  FROM soccer_team; 
 /* Ex. 24. 
    From the following tables, write a SQL query to find the number of matches played a player as a goalkeeper for his team. 
    Return country name, player name, number of matches played as a goalkeeper. 
