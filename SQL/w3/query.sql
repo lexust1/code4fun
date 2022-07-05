@@ -9193,10 +9193,454 @@ SELECT pm.player_name AS "Player Name",
    Sample table: soccer_country
    Sample table: player_booked
 */ 
+			  
+SELECT sc.country_name AS "Country Name",
+	   COUNT(*) AS "Player Booked"
+  FROM soccer_country AS sc
+  JOIN player_booked AS pb
+    ON sc.country_id = pb.team_id 
+ GROUP BY sc.country_name
+ ORDER BY COUNT(*) DESC;   
+    				  
+/* Ex. 44. 
+   From the following tables, write a SQL query to find those matches where most number of cards shown. 
+   Return match number, number of cards shown.  
+   Sample table: soccer_country
+   Sample table: player_booked
+   Sample table: player_mast
+*/  
+
+-- 1
+  WITH count_cards AS (SELECT match_no, 
+  						      COUNT(*) AS num_of_cards 
+  						 FROM player_booked 
+  						GROUP BY match_no)
+SELECT match_no AS "Match Number",
+	   num_of_cards
+  FROM count_cards
+ WHERE num_of_cards = (SELECT MAX(num_of_cards) 
+						 FROM count_cards); 
 
 
+-- 2						
+  WITH count_cards AS (SELECT match_no, 
+  						      COUNT(*) AS num_of_cards 
+  						 FROM player_booked 
+  						GROUP BY match_no)
+SELECT match_no AS "Match Number",
+	   num_of_cards
+  FROM (SELECT *, 
+  			   DENSE_RANK () OVER (ORDER BY num_of_cards DESC) AS cards_rank
+  		  FROM count_cards) AS rank_num_of_cards
+ WHERE cards_rank = 1; 						
 
+/* Ex. 45. 
+   From the following table, write a SQL query to find the assistant referees. 
+   Return match number, country name, assistant referee name.  
+   Sample table: match_details
+   Sample table: asst_referee_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT md.match_no AS "Match #",
+	   sc.country_name AS "Country",
+	   arm.ass_ref_name AS "Ass. referee name"
+  FROM match_details AS md
+  JOIN asst_referee_mast AS arm
+    ON md.ass_ref = arm.ass_ref_id
+  JOIN soccer_country AS sc
+    ON arm.country_id = sc.country_id; 
+
+/* Ex. 46. 
+   From the following tables, write a SQL query to find the assistant referees of each country assists the number of matches. 
+   Sort the result-set in descending order on number of matches. 
+   Return country name, number of matches.  
+   Sample table: match_details
+   Sample table: asst_referee_mast
+   Sample table: soccer_country
+*/ 
+   
+SELECT sc.country_name AS "Country",
+	   COUNT(DISTINCT match_no) AS "Num of matches"
+  FROM soccer_country AS sc
+  JOIN asst_referee_mast AS arm
+    ON sc.country_id = arm.country_id
+  JOIN match_details AS md
+    ON arm.ass_ref_id = md.ass_ref
+ GROUP BY sc.country_id
+ ORDER BY "Num of matches" DESC;
+
+/* Ex. 47. 
+   From the following table, write a SQL query to find the countries from where the assistant referees assist most of the matches. 
+   Return country name and number of matches.  
+   Sample table: match_details
+   Sample table: asst_referee_mast
+   Sample table: soccer_country
+*/ 
+  
+  WITH country_matches AS (SELECT sc.country_name,
+	   				              COUNT(DISTINCT match_no) AS num_of_matches
+  							 FROM soccer_country AS sc
+  							 JOIN asst_referee_mast AS arm
+    						   ON sc.country_id = arm.country_id
+  							 JOIN match_details AS md
+    						   ON arm.ass_ref_id = md.ass_ref
+    						GROUP BY sc.country_id)
+SELECT country_name AS "Country",
+	   num_of_matches AS "Assist most of the matches"
+  FROM country_matches
+ WHERE num_of_matches = (SELECT MAX(num_of_matches) 
+ 						   FROM country_matches);
+ 						  					  
+/* Ex. 48. 
+   From the following table, write a SQL query to find the name of referees for each match. 
+   Sort the result-set on match number. 
+   Return match number, country name, referee name.  
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+*/  
+
+SELECT mm.match_no AS "Match #",
+	   sc.country_name AS "Country",
+	   rm.referee_name AS "Referee name"
+  FROM match_mast AS mm
+  JOIN referee_mast AS rm
+    ON mm.referee_id = rm.referee_id
+  JOIN soccer_country AS sc
+    ON rm.country_id = sc.country_id
+ ORDER BY mm.match_no;
+        						  
+/* Ex. 49. 
+   From the following tables, write a SQL query to count the number of matches managed by referees of each country. 
+   Return country name, number of matches. 
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT country_name AS "Country",
+	   COUNT(*) AS "Num of mathes"
+  FROM match_mast
+  JOIN referee_mast 
+ USING (referee_id)
+  JOIN soccer_country
+ USING (country_id)
+ GROUP BY country_name
+ ORDER BY COUNT(*) DESC;
+ 					
+/* Ex. 50.  
+   From the following tables, write a SQL query to find the countries from where the referees managed most of the matches. 
+   Return country name, number of matches.  
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+*/ 
+
+-- 1
+  WITH referee_match AS (SELECT country_name,
+ 							    COUNT(*) AS num_of_matches
+						   FROM match_mast 
+						   JOIN referee_mast 
+						  USING (referee_id)
+						   JOIN soccer_country 
+						  USING (country_id)
+						  GROUP BY country_name)
+SELECT country_name AS "Country",
+	   num_of_matches AS "Max matches"
+  FROM referee_match
+ WHERE num_of_matches = (SELECT MAX(num_of_matches) 
+ 						   FROM referee_match); 
+ 						  
+-- 2 						  
+  WITH referee_match AS (SELECT country_name,
+ 							    COUNT(*) AS num_of_matches
+						   FROM match_mast 
+						   JOIN referee_mast 
+						  USING (referee_id)
+						   JOIN soccer_country 
+						  USING (country_id)
+						  GROUP BY country_name)
+SELECT country_name AS "Country",
+	   num_of_matches AS "Max matches"
+  FROM (SELECT *,
+  			   DENSE_RANK () OVER (ORDER BY num_of_matches DESC) AS rating
+  		  FROM referee_match) AS match_rank
+ WHERE rating = 1; 
+ 						  
+
+/* Ex. 51. 
+   From the following tables, write a SQL query to find the number of matches managed by each referee. 
+   Return referee name, country name, number of matches.  
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT referee_name AS "Referee Name",
+	   country_name AS "Country",
+	   COUNT(*) AS "Num of matches"
+  FROM match_mast
+  JOIN referee_mast
+ USING (referee_id)
+  JOIN soccer_country
+ USING (country_id)
+ GROUP BY referee_name, country_name; 
+ 						  	  
+/* Ex. 52. 
+   From the following tables, write a SQL query to find those referees who managed most of the matches. 
+   Return referee name, country name and number of matches.  
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+*/ 
+
+-- 1
+  WITH referee_matches AS (SELECT referee_id, 
+   								  COUNT(*) AS num_of_matches
+  							 FROM match_mast 
+  							GROUP BY referee_id)
+SELECT referee_name AS "Referee Name",
+	   country_name AS "Country",
+	   num_of_matches AS "Num of Matches"
+  FROM referee_mast
+  JOIN referee_matches
+ USING (referee_id)
+  JOIN soccer_country
+ USING (country_id) 
+ WHERE num_of_matches = (SELECT MAX(num_of_matches)
+ 						   FROM referee_matches); 
  
+-- 2
+  WITH referee_match AS (SELECT referee_name,
+  								referee_id,
+  								COUNT(*) AS num_of_matches,
+  								country_name
+  						   FROM match_mast
+  						   JOIN referee_mast
+  						  USING (referee_id)
+  						   JOIN soccer_country
+  						  USING (country_id)
+  						  GROUP BY referee_name, referee_id, country_name)	
+SELECT referee_name AS "Referre Name",
+	   country_name AS "Country Name",
+	   num_of_matches AS "Num of matches"
+  FROM (SELECT *,
+  		       DENSE_RANK () OVER (ORDER BY num_of_matches DESC) AS table_column_matches
+  		  FROM referee_match) AS table_rank_matches
+ WHERE table_column_matches = 1;  		  
+  		   					
+/* Ex. 53. 
+   From the following tables, write a SQL query to find those referees who managed the number of matches in each venue. 
+   Return referee name, country name, venue name, number of matches.  
+   Sample table: match_mast
+   Sample table: referee_mast
+   Sample table: soccer_country
+   Sample table: soccer_venue
+*/ 
+
+SELECT referee_name AS "Referee Name",
+	   country_name AS "Country",
+	   venue_name AS "Venue",
+	   COUNT(*) AS "Num of matches"
+  FROM match_mast
+  JOIN referee_mast
+ USING (referee_id)
+  JOIN soccer_country
+ USING (country_id)
+  JOIN soccer_venue
+ USING (venue_id) 
+ GROUP BY referee_name, country_name, venue_name; 
+
+
+/* Ex. 54. 
+   From the following tables, write a SQL query to find the referees and number of booked they made. 
+   Return referee name, number of matches.  
+   Sample table: player_booked
+   Sample table: match_mast
+   Sample table: referee_mast
+*/  
+
+SELECT referee_name AS "Referee Name",
+	   COUNT(*) AS "Num of Matches"
+  FROM player_booked 
+  JOIN match_mast 
+ USING (match_no) 
+  JOIN referee_mast
+ USING (referee_id)
+ GROUP BY referee_name
+ ORDER BY COUNT(*) DESC;
+
+/* Ex. 55. 
+   From the following tables, write a SQL query to find those referees who booked most number of players. 
+   Return referee name, number of matches.  
+   Sample table: player_booked
+   Sample table: match_mast
+   Sample table: referee_mast
+*/ 
+
+-- 1
+  WITH referee_match AS (SELECT referee_name,
+  							    COUNT(*) AS num_of_matches
+  						   FROM player_booked 
+  						   JOIN match_mast
+  						  USING (match_no)
+  						   JOIN referee_mast 
+  						  USING (referee_id)
+  						  GROUP BY referee_name)
+SELECT referee_name AS "Referee Name",
+	   num_of_matches AS "Num of Matches"
+  FROM referee_match
+ WHERE num_of_matches = (SELECT MAX(num_of_matches)
+ 						   FROM referee_match); 
+ 						  
+ -- 2						  
+
+  WITH referee_match AS (SELECT referee_name,
+  							    COUNT(*) AS num_of_matches
+  						   FROM player_booked 
+  						   JOIN match_mast
+  						  USING (match_no)
+  						   JOIN referee_mast 
+  						  USING (referee_id)
+  						  GROUP BY referee_name)
+SELECT referee_name AS "Referee Name",
+	   num_of_matches AS "Num of Matches"
+  FROM (SELECT *,
+			   DENSE_RANK () OVER (ORDER BY num_of_matches DESC) AS rank_match
+		  FROM referee_match) AS rank_referee_match
+ WHERE rank_match = 1; 
+ 						  
+/* Ex. 56. 
+   From the following tables, write a SQL query to find those players of each team who wore jersey number 10. 
+   Return country name, player name, position to play, age and playing club.  
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT sc.country_name AS "Country",
+	   pm.player_name AS "Name",
+	   pm.posi_to_play AS "Position",
+	   pm.age AS "Age",
+	   pm.playing_club AS "Club"
+  FROM player_mast AS pm
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ WHERE pm.jersey_no = 10;   
+ 
+/* Ex. 57. 
+   From the following tables, write a SQL query to find those defenders who scored goal for their team. 
+   Return player name, jersey number, country name, age and playing club.
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT pm.player_name AS "Name",
+	   pm.jersey_no AS "Number",
+	   sc.country_name AS "Country",
+	   pm.age AS "Age",
+	   pm.playing_club AS "Club"
+  FROM player_mast AS pm
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+ WHERE pm.posi_to_play = 'DF';   
+
+/* Ex. 58. 
+   From the following table, write a SQL query to find those players who accidentally scores against his own team. 
+   Return player name, jersey number, country name, age, position to play, and playing club.  
+   Sample table: goal_details
+   Sample table: player_mast
+   Sample table: soccer_country
+*/  
+
+SELECT pm.player_name AS "Name",
+	   pm.jersey_no AS "Number",
+	   sc.country_name AS "Country",
+	   pm.age AS "Age",
+	   pm.playing_club AS "Club"
+  FROM player_mast AS pm
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+  JOIN goal_details AS gd
+    ON pm.player_id = gd.player_id
+ WHERE gd.goal_type = 'O';   
+
+/* Ex. 59. 
+   From the following table, write a SQL query to find the results of penalty shootout matches. 
+   Return match number, play stage, country name and penalty score.  
+   Sample table: match_details
+   Sample table: soccer_country
+*/  
+
+-- 1
+SELECT md.match_no AS "Match #",
+	   md.play_stage AS "Play stage",
+	   sc.country_name AS "Country Name",
+	   md.penalty_score AS "Penalty Score"
+  FROM match_details AS md
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE md.penalty_score IS NOT NULL;
+
+-- 2
+SELECT md.match_no AS "Match #",
+	   md.play_stage AS "Play stage",
+	   sc.country_name AS "Country Name",
+	   md.penalty_score AS "Penalty Score"
+  FROM match_details AS md
+  JOIN soccer_country AS sc
+    ON md.team_id = sc.country_id
+ WHERE md.decided_by = 'P';
+
+/* Ex. 60.  
+   From the following table, write a SQL query to find the goal scored by the players according to their playing position. 
+   Return country name, position to play, number of goals.  
+   Sample table: goal_details
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT sc.country_name AS "Country",
+	   pm.posi_to_play AS "Position",
+	   COUNT(*) AS "Goals"
+  FROM goal_details AS gd
+  JOIN player_mast AS pm 
+    ON gd.player_id = pm.player_id
+  JOIN soccer_country AS sc
+    ON pm.team_id = sc.country_id
+ GROUP BY sc.country_name, pm.posi_to_play
+ ORDER BY COUNT(*) DESC;    
+  
+/* Ex. 61.  
+   From the following tables, write a SQL query to find those players who came into the field at the last time of play. 
+   Return match number, country name, player name, jersey number and time in out.  
+   Sample table: player_in_out
+   Sample table: player_mast
+   Sample table: soccer_country
+*/ 
+
+SELECT pio.match_no AS "Match #",
+	   sc.country_name AS "Country",
+	   pm.player_name AS "Name",
+	   pm.jersey_no AS "Number",
+	   pio.time_in_out AS "Time"
+  FROM player_in_out AS pio
+  JOIN player_mast AS pm
+    ON pio.player_id = pm.player_id
+  JOIN soccer_country AS sc
+    ON pio.team_id = sc.country_id
+ WHERE pio.time_in_out = (SELECT MAX(time_in_out)
+ 							FROM player_in_out)
+   AND pio.in_out = 'I';  
+
+
+SELECT *
+  FROM player_in_out;
+SELECT *
+  FROM player_mast; 
+
 SELECT *
   FROM soccer_venue 
  LIMIT 100;
@@ -9244,151 +9688,7 @@ SELECT *
   FROM soccer_team; 
  
 SELECT *
-  FROM match_captain;  
-    				  
-/* Ex. 44. 
-   From the following tables, write a SQL query to find those matches where most number of cards shown. 
-   Return match number, number of cards shown.  
-   Sample table: soccer_country
-   Sample table: player_booked
-   Sample table: player_mast
-*/  
-
-/* Ex. 45. 
-   From the following table, write a SQL query to find the assistant referees. 
-   Return match number, country name, assistant referee name.  
-   Sample table: match_details
-   Sample table: asst_referee_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 46. 
-   From the following tables, write a SQL query to find the assistant referees of each country assists the number of matches. 
-   Sort the result-set in descending order on number of matches. 
-   Return country name, number of matches.  
-   Sample table: match_details
-   Sample table: asst_referee_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 47. 
-   From the following table, write a SQL query to find the countries from where the assistant referees assist most of the matches. 
-   Return country name and number of matches.  
-   Sample table: match_details
-   Sample table: asst_referee_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 48. 
-   From the following table, write a SQL query to find the name of referees for each match. 
-   Sort the result-set on match number. Return match number, country name, referee name.  
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-*/  
- 
-/* Ex. 49. 
-   From the following tables, write a SQL query to count the number of matches managed by referees of each country. 
-   Return country name, number of matches. 
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 50.  
-   From the following tables, write a SQL query to find the countries from where the referees managed most of the matches. 
-   Return country name, number of matches.  
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 51. 
-   From the following tables, write a SQL query to find the number of matches managed by each referee. 
-   Return referee name, country name, number of matches.  
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-*/ 
-
-/* Ex. 52. 
-   From the following tables, write a SQL query to find those referees who managed most of the matches. 
-   Return referee name, country name and number of matches.  
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 53. 
-   From the following tables, write a SQL query to find those referees who managed the number of matches in each venue. 
-   Return referee name, country name, venue name, number of matches.  
-   Sample table: match_mast
-   Sample table: referee_mast
-   Sample table: soccer_country
-   Sample table: soccer_venue
-*/ 
- 
-/* Ex. 54. 
-   From the following tables, write a SQL query to find the referees and number of booked they made. 
-   Return referee name, number of matches.  
-   Sample table: player_booked
-   Sample table: match_mast
-   Sample table: referee_mast
-*/  
-
-/* Ex. 55. 
-   From the following tables, write a SQL query to find those referees who booked most number of players. 
-   Return referee name, number of matches.  
-   Sample table: player_booked
-   Sample table: match_mast
-   Sample table: referee_mast
-*/ 
-
-/* Ex. 56. 
-   From the following tables, write a SQL query to find those players of each team who wore jersey number 10. 
-   Return country name, player name, position to play, age and playing club.  
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 57. 
-   From the following tables, write a SQL query to find those players of each team who wore jersey number 10. 
-   Return country name, player name, position to play, age and playing club.  
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 58. 
-   From the following table, write a SQL query to find those players who accidentally scores against his own team. 
-   Return player name, jersey number, country name, age, position to play, and playing club.  
-   Sample table: goal_details
-   Sample table: player_mast
-   Sample table: soccer_country
-*/  
- 
-/* Ex. 59. 
-   From the following table, write a SQL query to find the results of penalty shootout matches. 
-   Return match number, play stage, country name and penalty score.  
-   Sample table: match_details
-   Sample table: soccer_country
-*/  
- 
-/* Ex. 60.  
-   From the following table, write a SQL query to find the goal scored by the players according to their playing position. 
-   Return country name, position to play, number of goals.  
-   Sample table: goal_details
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
- 
-/* Ex. 61.  
-   From the following tables, write a SQL query to find those players who came into the field at the last time of play. 
-   Return match number, country name, player name, jersey number and time in out.  
-   Sample table: player_in_out
-   Sample table: player_mast
-   Sample table: soccer_country
-*/ 
-  
+  FROM match_captain; 
 
  
  
