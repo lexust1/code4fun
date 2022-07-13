@@ -9635,60 +9635,600 @@ SELECT pio.match_no AS "Match #",
  							FROM player_in_out)
    AND pio.in_out = 'I';  
 
+  
+  
+/* PART 16.1.  */  
+ 
+/* Ex. 1. 
+   From the following table, write a SQL query to find those nurses who are yet to be registered. 
+   Return all the fields of nurse table.  
+   Sample table: nurse
+*/ 
 
+ -- 1
 SELECT *
-  FROM player_in_out;
-SELECT *
-  FROM player_mast; 
+  FROM nurse
+ WHERE registered IS FALSE;
+ 
+ -- 2
+ SELECT *
+  FROM nurse
+ WHERE registered = 'false';
+ 
+ /* Ex. 2. 
+   From the following table, write a SQL query to find the nurse who is the head of their department. 
+   Return Nurse Name as "name", Position as "Position".  
+   Sample table: nurse
+*/ 
+ 
+SELECT name AS "Nurse Name",
+       position AS "Position"
+  FROM nurse
+ WHERE position = 'Head Nurse';
+ 
+/* Ex. 3. 
+   From the following tables, write a SQL query to find those physicians who are the head of the department. 
+   Return Department name as "Department" and Physician name as "Physician".  
+   Sample table: physician
+   Sample table: department
+*/ 
 
-SELECT *
-  FROM soccer_venue 
+SELECT d.name AS "Department",
+	   p.name AS "Physician"
+  FROM department AS d
+  JOIN physician AS p
+    ON d.head = p.employeeid;
+ 
+/* Ex. 4. 
+   From the following table, write a SQL query to count the number of patients who booked an appointment with at least one Physician. 
+   Return count as "Number of patients taken at least one appointment".  
+   Sample table: appointment
+*/  
+
+SELECT COUNT(DISTINCT patient) AS "Number of patients taken at least one appointment"
+  FROM appointment;
+ 
+/* Ex. 5. 
+   From the following table, write a SQL query to find the floor and block where the room number 212 belongs. 
+   Return block floor as "Floor" and block code as "Block".
+   Sample table: room
+*/ 
+
+SELECT blockfloor AS "Floor",
+	   blockcode AS "Block"
+  FROM room
+ WHERE roomnumber = 212; 
+ 
+/* Ex. 6. 
+   From the following table, write a SQL query to count the number available rooms. 
+   Return count as "Number of available rooms".
+   Sample table: room
+*/ 
+
+--1
+SELECT COUNT(*) AS "Number of available rooms"
+  FROM room
+ WHERE unavailable IS FALSE; 
+
+--2
+SELECT COUNT(*) AS "Number of available rooms"
+  FROM room
+ WHERE unavailable = 'false';
+
+--3
+SELECT COUNT(*) AS "Number of available rooms"
+  FROM room
+ WHERE unavailable = 'f';
+ 
+/* Ex. 7. 
+   From the following table, write a SQL query to count the number of unavailable rooms. 
+   Return count as "Number of unavailable rooms".
+   Sample table: room
+*/ 
+
+--1
+SELECT COUNT(*) AS "Number of unavailable rooms"
+  FROM room
+ WHERE unavailable IS TRUE; 
+
+--2
+SELECT COUNT(*) AS "Number of unavailable rooms"
+  FROM room
+ WHERE unavailable = 'true';
+
+--3
+SELECT COUNT(*) AS "Number of unavailable rooms"
+  FROM room
+ WHERE unavailable = 't';
+
+/* Ex. 8. 
+   From the following tables, write a SQL query to find the physician and the departments they are affiliated with. 
+   Return Physician name as "Physician", and department name as "Department".  
+   Sample table: physician
+   Sample table: department
+   Sample table: affiliated_with
+*/  
+
+SELECT p.name AS "Physician",
+	   d.name AS "Department"
+  FROM physician AS p
+  JOIN affiliated_with AS aw
+    ON p.employeeid = aw.physician 
+  JOIN department AS d
+    ON aw.department = d.departmentid
+ WHERE primaryaffiliation IS TRUE;
+
+/* Ex. 9. 
+   From the following tables, write a SQL query to find those physicians who have trained for special treatment. 
+   Return Physician name as "Physician", treatment procedure name as "Treatment".  
+   Sample table: physician
+   Sample table: procedure
+   Sample table: trained_in
+*/ 
+
+SELECT ph.name AS "Physician",
+	   pr.name AS "Treatment"
+  FROM trained_in AS ti
+  JOIN physician AS ph
+    ON ti.physician = ph.employeeid
+  JOIN procedure AS pr 
+    ON ti.treatment = pr.code;
+ 
+/* Ex. 10.  
+   From the following tables, write a SQL query to find those physicians who are yet to be affiliated. 
+   Return Physician name as "Physician", Position, and department as "Department".
+   Sample table: physician
+   Sample table: affiliated_with
+   Sample table: department
+*/ 
+
+SELECT p.name AS "Physician",
+	   d.name AS "Department"
+  FROM physician AS p
+  JOIN affiliated_with AS aw
+    ON p.employeeid = aw.physician 
+  JOIN department AS d
+    ON aw.department = d.departmentid
+ WHERE primaryaffiliation IS FALSE;   
+   
+ /* Ex. 11. 
+   From the following tables, write a SQL query to find those physicians who are not a specialized physician. 
+   Return Physician name as "Physician", position as "Designation".  
+   Sample table: physician
+   Sample table: trained_in
+*/ 
+
+SELECT p.name AS "Physician",
+	   p.position as "Designation"
+  FROM physician AS p
+  LEFT JOIN trained_in AS ti
+    ON p.employeeid = ti.physician
+ WHERE ti.physician IS NULL;
+
+/* Ex. 12. 
+   From the following tables, write a SQL query to find the patients with their physicians by whom they got their preliminary treatment. 
+   Return Patient name as “Patient”, address as “Address” and Physician name as “Physician”.
+   Sample table: patient
+   Sample table: physician
+*/ 
+
+SELECT pa.name AS "Patient",
+	   pa.address AS "Address",
+	   ph.name AS "Physician"
+  FROM physician AS ph
+  JOIN patient AS pa
+    ON ph.employeeid = pa.pcp;
+ 
+/* Ex. 13. 
+   From the following tables, write a SQL query to find the patients and the number of physicians they have taken appointment. 
+   Return Patient name as "Patient", number of Physicians as "Appointment for No. of Physicians".  
+   Sample table: appointment
+   Sample table: patient
+*/ 
+
+SELECT p.name AS "Patient",
+	   COUNT(*) AS "Number of Physicians"
+  FROM appointment AS a
+  JOIN patient AS p
+    ON a.patient = p.ssn
+ GROUP BY p.name;   
+  
+/* Ex. 14. 
+   From the following tables, write a SQL query to count number of unique patients who got an appointment for examination room ‘C’. 
+   Return unique patients as “No. of patients got appointment for room C”..
+   Sample table: appointment
+*/  
+
+SELECT COUNT(*) AS "Number of patients got appointment for room C"
+  FROM appointment
+ WHERE examinationroom = 'C';
+
+/* Ex. 15. 
+   From the following tables, write a SQL query to find the name of the patients and the number of the room where 
+   they have to go for their treatment. 
+   Return patient name as “Patient”, examination room as “Room No.”, and starting date time as Date “Date and Time of appointment”.
+   Sample table: patient
+   Sample table: appointment
+*/ 
+
+SELECT p.name AS "Patient",
+	   a.examinationroom  AS "Room #",
+	   a.start_dt_time AS "Date and time of appointment"
+  FROM patient AS p
+  JOIN appointment AS a
+    ON p.ssn = a.patient;
+    
+/* Ex. 16. 
+   From the following tables, write a SQL query to find the name of the nurses and the room scheduled, where they will assist the physicians. 
+   Return Nurse Name as “Name of the Nurse” and examination room as “Room No.”.  
+   Sample table: nurse
+   Sample table: appointment
+*/ 
+
+SELECT n.name AS "Nurse Name",
+	   a.examinationroom AS "# Room"
+  FROM nurse AS n
+  JOIN appointment AS a
+    ON n.employeeid = a.prepnurse;
+    
+/* Ex. 17. 
+   From the following tables, write a SQL query to find those patients who taken the appointment on the 25th of April at 10 am. 
+   Return Name of the patient, Name of the Nurse assisting the physician, Physician Name as "Name of the physician", examination room as "Room No.", 
+   schedule date and approximate time to meet the physician.  
+   Sample table: patient
+   Sample table: appointment
+   Sample table: nurse
+   Sample table: physician
+*/ 
+
+SELECT pa.name AS "Patient",
+	   n.name AS "Nurse",
+	   ph.name AS "Name",
+	   a.examinationroom AS "Room #",
+	   a.start_dt_time AS "Time"
+  FROM patient AS pa
+  JOIN physician AS ph
+    ON pa.pcp = ph.employeeid
+  JOIN appointment AS a
+    ON ph.employeeid = a.physician
+  JOIN nurse AS n
+    ON a.prepnurse = n.employeeid
+ WHERE a.start_dt_time = '2008-04-25 10:00:00';
+  
+/* Ex. 18. 
+   From the following tables, write a SQL query to find those patients and their physicians who do not require any assistance of a nurse. 
+   Return Name of the patient as "Name of the patient", Name of the Physician as "Name of the physician" and examination room as "Room No.".  
+   Sample table: patient
+   Sample table: appointment
+   Sample table: physician
+*/  
+
+SELECT pa.name AS "Patient name",
+	   ph.name AS "Physician name",
+	   a.examinationroom AS "Room #"
+  FROM physician AS ph	   
+  JOIN appointment AS a
+    ON ph.employeeid = a.physician
+  JOIN patient AS pa
+    ON a.patient = pa.ssn 
+ WHERE a.prepnurse IS NULL;    
+
+/* Ex. 19. 
+   From the following tables, write a SQL query to find the patients and their treating physicians and medication. 
+   Return Patient name as "Patient", Physician name as "Physician", Medication name as "Medication".  
+   Sample table: patient
+   Sample table: prescribes
+   Sample table: physician
+   Sample table: medication
+*/ 
+
+SELECT pa.name AS "Patient",
+	   ph.name AS "Physician",
+	   m.name AS "Medication"
+  FROM prescribes AS pr
+  JOIN physician AS ph
+    ON pr.physician = ph.employeeid
+  JOIN patient AS pa
+    ON pr.patient = pa.ssn
+  JOIN medication AS m
+    ON pr.medication = m.code;
+
+/* Ex. 20.  
+   From the following tables, write a SQL query to find those patients who have taken an advanced appointment. 
+   Return Patient name as "Patient", Physician name as "Physician" and Medication name as "Medication".  
+   Sample table: patient
+   Sample table: prescribes
+   Sample table: physician
+   Sample table: medication
+*/  
+
+ SELECT pa.name AS "Patient",
+	   ph.name AS "Physician",
+	   m.name AS "Medication"
+  FROM prescribes AS pr
+  JOIN physician AS ph
+    ON pr.physician = ph.employeeid
+  JOIN patient AS pa
+    ON pr.patient = pa.ssn
+  JOIN medication AS m
+    ON pr.medication = m.code
+ WHERE pr.appointment IS NOT NULL;  
+   
+/* Ex. 21. 
+   From the following tables, write a SQL query to find those patients who did not take any appointment. 
+   Return Patient name as "Patient", Physician name as "Physician" and Medication name as "Medication".  
+   Sample table: patient
+   Sample table: prescribes
+   Sample table: physician
+   Sample table: medication
+*/ 
+
+SELECT pa.name AS "Patient",
+	   ph.name AS "Physician",
+	   m.name AS "Medication"
+  FROM prescribes AS pr
+  JOIN physician AS ph
+    ON pr.physician = ph.employeeid
+  JOIN patient AS pa
+    ON pr.patient = pa.ssn
+  JOIN medication AS m
+    ON pr.medication = m.code
+ WHERE pr.appointment IS NULL;
+ 
+/* Ex. 22. 
+   From the following table, write a SQL query to count the number of available rooms in each block. 
+   Sort the result-set on ID of the block. 
+   Return ID of the block as "Block", count number of available rooms as "Number of available rooms".  
+   Sample table: room
+*/ 
+
+SELECT blockcode AS "Block",
+	   COUNT(*) AS "Number of available rooms"
+  FROM room 
+ WHERE unavailable IS FALSE
+ GROUP BY blockcode
+ ORDER BY blockcode; 
+  
+/* Ex. 23. 
+   From the following table, write a SQL query to count the number of available rooms in each floor. 
+   Sort the result-set on block floor. 
+   Return floor ID as "Floor" and count the number of available rooms as "Number of available rooms". 
+   Sample table: room
+*/ 
+
+SELECT blockfloor AS "Floor",
+	   COUNT(*) AS "Number of available rooms"
+  FROM room 
+ WHERE unavailable IS FALSE
+ GROUP BY blockfloor
+ ORDER BY blockfloor; 
+ 
+/* Ex. 24. 
+   From the following table, write a SQL query to count the number of available rooms for each floor in each block. 
+   Sort the result-set on floor ID, ID of the block. 
+   Return the floor ID as "Floor", ID of the block as "Block", and number of available rooms as "Number of available rooms".  
+   Sample table: room
+*/  
+
+SELECT blockfloor AS "Floor",
+	   blockcode AS "Block",
+	   COUNT(*) AS "Number of available rooms"
+  FROM room
+ GROUP BY blockfloor, blockcode 
+ ORDER BY blockfloor, blockcode;
+
+/* Ex. 25. 
+   From the following tables, write a SQL query to count the number of unavailable rooms for each block in each floor. 
+   Sort the result-set on block floor, block code. Return the floor ID as "Floor", block ID as "Block", 
+   and number of unavailable as "Number of unavailable rooms".  
+   Sample table: room
+*/ 
+
+SELECT blockfloor AS "Floor",
+	   blockcode AS "Block",
+	   COUNT(*) AS "Number of available rooms"
+  FROM room
+ WHERE unavailable IS TRUE 
+ GROUP BY blockfloor, blockcode 
+ ORDER BY blockfloor, blockcode;
+
+/* Ex. 26. 
+   From the following table, write a SQL query to find the floor where the maximum numbers of rooms are available. 
+   Return floor ID as "Floor", count "Number of available rooms".  
+   Sample table: room
+*/ 
+
+-- 1
+  WITH floor_room AS (SELECT blockfloor,
+  							 COUNT(*) AS num_of_av_rooms
+  						FROM room
+  					   WHERE unavailable IS FALSE	
+  					   GROUP BY blockfloor)
+SELECT blockfloor AS "Floor",
+	   num_of_av_rooms AS "Number of available rooms"
+  FROM floor_room
+ WHERE num_of_av_rooms = (SELECT MAX(num_of_av_rooms)
+							FROM floor_room);
+
+-- 2
+  WITH floor_room AS (SELECT blockfloor,
+  							 COUNT(*) AS num_of_av_rooms
+  						FROM room
+  					   WHERE unavailable IS FALSE 
+  					   GROUP BY blockfloor)
+SELECT blockfloor AS "Floor",
+	   num_of_av_rooms AS "Number of available rooms"
+  FROM (SELECT *,
+  		       DENSE_RANK () OVER (ORDER BY num_of_av_rooms DESC) AS rank_num_rooms
+  		  FROM floor_room) AS rank_floor_room
+ WHERE rank_num_rooms = 1;		  
+  
+-- 3
+SELECT blockfloor,
+  	   COUNT(*) AS num_of_av_rooms
+  FROM room
+ WHERE unavailable IS FALSE	
+ GROUP BY blockfloor
+HAVING COUNT(*) = (SELECT MAX(num_of_av_rooms) 
+					 FROM (SELECT blockfloor,
+  	   							  COUNT(*) AS num_of_av_rooms
+  							 FROM room
+ 							WHERE unavailable IS FALSE	
+ 							GROUP BY blockfloor) AS room_count);
+ 						
+
+/* Ex. 27. 
+   From the following table, write a SQL query to find the floor where the minimum numbers of rooms are available. 
+   Return floor ID as “Floor”, Number of available rooms.  
+   Sample table: room
+*/ 
+
+SELECT * 
+  FROM nurse
  LIMIT 100;
 
 SELECT *
-  FROM player_mast;
+  FROM physician;
  
 SELECT *
-  FROM goal_details;
+  FROM department;
  
 SELECT *
-  FROM match_mast; 
+  FROM appointment; 
  
 SELECT *
-  FROM penalty_shootout; 
+  FROM room;
  
 SELECT *
-  FROM match_details; 
+  FROM affiliated_with;
  
 SELECT *
-  FROM player_in_out;
+  FROM procedure;
  
 SELECT *
-  FROM soccer_country; 
+  FROM trained_in;
  
 SELECT *
-  FROM player_booked;  
+  FROM patient;
  
 SELECT *
-  FROM penalty_gk;   	
+  FROM prescribes;
  
 SELECT *
-  FROM match_captain; 	
+  FROM medication;
  
-SELECT * 
-  FROM soccer_city;
+/* Ex. 28. 
+   From the following tables, write a SQL query to find the name of the patients, their block, floor, and room number where they admitted.  
+   Sample table: stay
+   Sample table: patient
+   Sample table: room
+*/  
  
-SELECT *
-  FROM referee_mast;
+/* Ex. 29. 
+   From the following tables, write a SQL query to find the nurses and the block where they are booked for attending the patients on call. 
+   Return Nurse Name as “Nurse”, Block code as "Block".   
+   Sample table: nurse
+   Sample table: on_call
+*/ 
 
-SELECT *  
-  FROM asst_referee_mast;
+/* Ex. 30.  
+   From the following tables, write a SQL query to get
+a) name of the patient,
+b) name of the physician who is treating him or her,
+c) name of the nurse who is attending him or her,
+d) which treatement is going on to the patient,
+e) the date of release,
+f) in which room the patient has admitted and which floor and block the room belongs to respectively.  
+Sample table: undergoes
+Sample table: patient
+Sample table: physician
+Sample table: nurse
+Sample table: stay
+Sample table: room
+*/  
  
-SELECT *
-  FROM soccer_team; 
+/* Ex. 31. 
+   From the following tables, write a SQL query to find all those physicians who performed a medical procedure, but they are not certified to perform. 
+   Return Physician name as “Physician”.  
+   Sample table: physician
+   Sample table: undergoes
+   Sample table: trained_in
+*/ 
+
+/* Ex. 32. 
+   From the following tables, write a SQL query to find all the physicians, their procedure, date when the procedure was carried out and 
+   name of the patient on which procedure have been carried out but those physicians are not certified for that procedure. 
+   Return Physician Name as "Physician", Procedure Name as "Procedure", date, and Patient. Name as "Patient".  
+   Sample table: physician
+   Sample table: undergoes
+   Sample table: patient
+   Sample table: procedure
+*/ 
  
-SELECT *
-  FROM match_captain; 
+/* Ex. 33. 
+   From the following table, write a SQL query to find all those physicians who completed a medical procedure with certification after 
+   the date of expiration of their certificate. 
+   Return Physician Name as "Physician", Position as "Position".  
+   Sample table: physician
+   Sample table: undergoes
+   Sample table: trained_in
+*/ 
+ 
+/* Ex. 34. 
+   From the following table, write a SQL query to find all those physicians who completed a medical procedure with certification after 
+   the date of expiration of their certificate. Return Physician Name as “Physician”, Position as "Position", 
+   Procedure Name as “Procedure”, Date of Procedure as “Date of Procedure”, Patient Name as “Patient”, and expiry date of certification 
+   as “Expiry Date of Certificate”.   
+   Sample table: physician
+   Sample table: undergoes
+   Sample table: patient
+   Sample table: procedure
+   Sample table: trained_in
+*/  
+
+/* Ex. 35. 
+   From the following table, write a SQL query to find those nurses who have ever been on call for room 122. Return name of the nurses.   
+   Sample table: nurse
+   Sample table: on_call
+   Sample table: room
+*/ 
+
+/* Ex. 36. 
+   From the following table, write a SQL query to find those patients who have been prescribed by some medication by his/her physician 
+   who has carried out primary care. Return Patient name as “Patient”, and Physician Name as “Physician”.  
+   Sample table: patient
+   Sample table: prescribes
+   Sample table: physician
+*/ 
+ 
+/* Ex. 37. 
+   From the following table, write a SQL query to find those patients who have been undergone a procedure costing more than $5,000 and 
+   the name of that physician who has carried out primary care. Return name of the patient as “Patient”, name of the physician as “Primary Physician”, 
+   and cost for the procedure as “Procedure Cost”.   
+   Sample table: patient
+   Sample table: undergoes
+   Sample table: physician
+   Sample table: procedure
+*/ 
+ 
+/* Ex. 38. 
+   From the following table, write a SQL query to find those patients who had at least two appointments where the nurse who prepped the appointment 
+   was a registered nurse and the physician who has carried out primary care. 
+   Return Patient name as “Patient”, Physician name as “Primary Physician”, and Nurse Name as “Nurse”.   
+   Sample table: appointment
+   Sample table: patient
+   Sample table: nurse
+   Sample table: physician
+*/  
+ 
+/* Ex. 39. 
+   From the following table, write a SQL query to find those patients whose primary care a physician who is not the head of any department takes. 
+   Return Patient name as “Patient”, Physician Name as “Primary care Physician”.   
+   Sample table: patient
+   Sample table: department
+   Sample table: physician
+*/ 
+
 
  
  
