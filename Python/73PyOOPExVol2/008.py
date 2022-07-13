@@ -10,7 +10,8 @@
 # Exactly theuuid. uuid4( ) function from this module. 
 
 # An example of using this function:
-# import uuid str(uuid.uuid4().fields[-1])[: 6]
+# import uuid 
+# str(uuid.uuid4().fields[-1])[: 6]
 # Returns a 6-element string. This will be the value of the book_id attribute.
 
 
@@ -28,5 +29,38 @@
 # Expected result:
 # dict_keys(['book_id', 'title', 'author'])
 
+import uuid
 
+# w/ static method
+class Book:
+    
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
+        self.book_id = self.get_id()
         
+    @staticmethod
+    def get_id():
+        return str(uuid.uuid4().fields[-1])[:6]
+    
+book1 = Book('Python Object Oriented Programming Exercises Volume 2', 
+             'Edcorner Learning')    
+
+print(book1.__dict__)
+        
+
+
+# w/o static method
+class Book:
+    
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
+        self.book_id = str(uuid.uuid4().fields[-1])[:6]
+        
+
+    
+book1 = Book('Python Object Oriented Programming Exercises Volume 2', 
+             'Edcorner Learning')    
+
+print(book1.__dict__)
