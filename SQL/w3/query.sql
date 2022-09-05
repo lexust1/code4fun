@@ -10083,53 +10083,46 @@ HAVING COUNT(*) = (SELECT MAX(num_of_av_rooms)
    Sample table: room
 */ 
 
-SELECT * 
-  FROM nurse
- LIMIT 100;
-
-SELECT *
-  FROM physician;
- 
-SELECT *
-  FROM department;
- 
-SELECT *
-  FROM appointment; 
- 
-SELECT *
-  FROM room;
- 
-SELECT *
-  FROM affiliated_with;
- 
-SELECT *
-  FROM procedure;
- 
-SELECT *
-  FROM trained_in;
- 
-SELECT *
-  FROM patient;
- 
-SELECT *
-  FROM prescribes;
- 
-SELECT *
-  FROM medication;
- 
+  WITH floor_room AS (SELECT blockfloor,
+  							 COUNT(*) AS num_of_av_rooms
+  						FROM room
+  					   WHERE unavailable IS FALSE	
+  					   GROUP BY blockfloor)
+SELECT blockfloor AS "Floor",
+	   num_of_av_rooms AS "Number of available rooms"
+  FROM floor_room
+ WHERE num_of_av_rooms = (SELECT MIN(num_of_av_rooms)
+							FROM floor_room); 						
+ 						
 /* Ex. 28. 
    From the following tables, write a SQL query to find the name of the patients, their block, floor, and room number where they admitted.  
    Sample table: stay
    Sample table: patient
    Sample table: room
 */  
- 
+
+SELECT p.name AS "Patient",
+	   r.blockcode AS "Block",
+	   r.blockfloor AS "Floor",
+	   r.roomnumber AS "Room"
+  FROM patient AS p
+  JOIN stay AS s
+    ON p.ssn = s.patient
+  JOIN room AS r
+    ON s.room = r.roomnumber;
+    						
 /* Ex. 29. 
    From the following tables, write a SQL query to find the nurses and the block where they are booked for attending the patients on call. 
    Return Nurse Name as “Nurse”, Block code as "Block".   
    Sample table: nurse
    Sample table: on_call
 */ 
+
+SELECT n.name AS "Name",
+	   oc.blockcode AS "Block"
+  FROM nurse AS n
+  JOIN on_call AS oc
+    ON n.employeeid = oc.nurse;
 
 /* Ex. 30.  
    From the following tables, write a SQL query to get
@@ -10146,7 +10139,27 @@ Sample table: nurse
 Sample table: stay
 Sample table: room
 */  
- 
+
+SELECT pa.name AS "Patient",
+	   ph.name AS "Physician",
+	   n.name AS "Nurse",
+	   u.procedure AS "Procedure",
+	   u.date AS "Date",
+	   s.room AS "Room",
+	   r.blockfloor AS "Floor",
+	   r.blockcode AS "Block"
+  FROM patient AS pa
+  JOIN undergoes AS u
+    ON pa.ssn = u.patient
+  JOIN physician AS ph
+    ON u.physician = ph.employeeid
+  LEFT JOIN nurse AS n 
+    ON u.assistingnurse = n.employeeid
+  JOIN stay AS s
+    ON u.stay = s.stayid
+  JOIN room AS r
+    ON s.room = r.roomnumber;
+    
 /* Ex. 31. 
    From the following tables, write a SQL query to find all those physicians who performed a medical procedure, but they are not certified to perform. 
    Return Physician name as “Physician”.  
@@ -10155,6 +10168,15 @@ Sample table: room
    Sample table: trained_in
 */ 
 
+SELECT p.name AS "Physician"
+  FROM physician AS p
+  JOIN undergoes AS u 
+    ON p.employeeid = u.physician
+  LEFT JOIN trained_in AS ti 
+    ON ti.physician = u.physician
+   AND u.procedure = ti.treatment 
+ WHERE ti.physician IS NULL; 
+    
 /* Ex. 32. 
    From the following tables, write a SQL query to find all the physicians, their procedure, date when the procedure was carried out and 
    name of the patient on which procedure have been carried out but those physicians are not certified for that procedure. 
@@ -10163,8 +10185,26 @@ Sample table: room
    Sample table: undergoes
    Sample table: patient
    Sample table: procedure
+   Sample table: trained_in
 */ 
- 
+
+SELECT ph.name AS "Physician",
+	   pr.name AS "Procedure",
+	   u.date AS "Date",
+	   pa.name AS "Patient"
+  FROM undergoes AS u
+  JOIN patient AS pa
+    ON u.patient = pa.ssn
+  JOIN physician AS ph
+    ON u.physician = ph.employeeid
+  JOIN procedure AS pr
+    ON u.procedure = pr.code
+  LEFT JOIN trained_in AS ti
+    ON u.physician = ti.physician
+   AND u.procedure = ti.treatment 
+ WHERE ti.physician IS NULL;        
+   
+
 /* Ex. 33. 
    From the following table, write a SQL query to find all those physicians who completed a medical procedure with certification after 
    the date of expiration of their certificate. 
@@ -10173,7 +10213,17 @@ Sample table: room
    Sample table: undergoes
    Sample table: trained_in
 */ 
- 
+
+SELECT p.name AS "Physician with expired License",
+	   p.position AS "Position"
+  FROM physician AS p
+  JOIN undergoes AS u 
+    ON p.employeeid = u.physician
+  LEFT JOIN trained_in AS ti 
+    ON ti.physician = u.physician
+ WHERE u.procedure = ti.treatment 
+   AND ti.certificationexpires < u.date;  
+  
 /* Ex. 34. 
    From the following table, write a SQL query to find all those physicians who completed a medical procedure with certification after 
    the date of expiration of their certificate. Return Physician Name as “Physician”, Position as "Position", 
@@ -10186,13 +10236,47 @@ Sample table: room
    Sample table: trained_in
 */  
 
+SELECT ph.name AS "Physician",
+	   pr.name AS "Procedure",
+	   u.date AS "Date of Procedure",
+	   pa.name AS "Patient",
+	   ti.certificationexpires AS "Expiry Date of Certificate"   
+  FROM undergoes AS u
+  JOIN patient AS pa
+    ON u.patient = pa.ssn
+  JOIN physician AS ph
+    ON u.physician = ph.employeeid
+  JOIN procedure AS pr
+    ON u.procedure = pr.code
+  LEFT JOIN trained_in AS ti
+    ON u.physician = ti.physician
+ WHERE u.procedure = ti.treatment 
+   AND ti.certificationexpires < u.date;     
+  
+
 /* Ex. 35. 
    From the following table, write a SQL query to find those nurses who have ever been on call for room 122. Return name of the nurses.   
    Sample table: nurse
    Sample table: on_call
    Sample table: room
 */ 
+  
+-- The question is not clear. We can only find  what block and floor have been visited by a nurse. We do not have enough data in these three 
+-- tables to find a solution (there is no connection r.roomnumber with other tables) 
+  
+  
+SELECT *--n.name AS "Name",
+  FROM nurse AS n
+  JOIN on_call AS oc
+    ON n.employeeid = oc.nurse
+  JOIN room AS r
+    ON oc.blockfloor = r.blockfloor
+   AND oc.blockcode = r.blockfloor
+ WHERE r.roomnumber = 122; 
+  
 
+       
+    
 /* Ex. 36. 
    From the following table, write a SQL query to find those patients who have been prescribed by some medication by his/her physician 
    who has carried out primary care. Return Patient name as “Patient”, and Physician Name as “Physician”.  
@@ -10200,7 +10284,18 @@ Sample table: room
    Sample table: prescribes
    Sample table: physician
 */ 
+
  
+SELECT pa.name AS "Patient",
+	   ph.name AS "Physician"
+  FROM patient AS pa
+  JOIN physician AS ph
+    ON pa.pcp = ph.employeeid
+  JOIN prescribes AS pr
+    ON ph.employeeid = pr.physician
+   AND pa.ssn = pr.patient;
+
+
 /* Ex. 37. 
    From the following table, write a SQL query to find those patients who have been undergone a procedure costing more than $5,000 and 
    the name of that physician who has carried out primary care. Return name of the patient as “Patient”, name of the physician as “Primary Physician”, 
@@ -10210,7 +10305,19 @@ Sample table: room
    Sample table: physician
    Sample table: procedure
 */ 
- 
+
+SELECT pa.name AS "Patient",
+	   ph.name AS "Physician",
+	   pr.cost AS "Procedure Cost"
+  FROM undergoes AS u
+  JOIN patient AS pa
+    ON u.patient = pa.ssn
+  JOIN physician AS ph
+    ON u.physician = ph.employeeid
+  JOIN procedure AS pr
+    ON u.procedure = pr.code
+ WHERE pr.cost > 5000;
+   
 /* Ex. 38. 
    From the following table, write a SQL query to find those patients who had at least two appointments where the nurse who prepped the appointment 
    was a registered nurse and the physician who has carried out primary care. 
@@ -10220,7 +10327,36 @@ Sample table: room
    Sample table: nurse
    Sample table: physician
 */  
- 
+
+  WITH patient_join AS (SELECT pa.name AS pa_name, 
+  							  ph.name AS ph_name,
+	   						   n.name AS n_name
+  						  FROM appointment AS a
+					      JOIN patient AS pa
+					        ON a.patient = pa.ssn
+					      JOIN physician AS ph
+					        ON pa.pcp = ph.employeeid
+					      JOIN nurse AS n
+					        ON a.prepnurse = n.employeeid
+					     WHERE n.registered IS TRUE),
+	   patient_count AS (SELECT pa.name AS pa_name
+  						  FROM appointment AS a
+					      JOIN patient AS pa
+					        ON a.patient = pa.ssn
+					      JOIN physician AS ph
+					        ON pa.pcp = ph.employeeid
+					      JOIN nurse AS n
+					        ON a.prepnurse = n.employeeid
+					     WHERE n.registered IS TRUE
+					     GROUP BY pa.name
+					    HAVING COUNT(*) >= 2) 
+SELECT pj.pa_name AS "Patient",
+	   pj.ph_name AS "Physician",
+	   pj.n_name AS "Nurse"
+  FROM patient_join AS pj
+  JOIN patient_count AS pc
+    ON pj.pa_name = pc.pa_name;
+   				     
 /* Ex. 39. 
    From the following table, write a SQL query to find those patients whose primary care a physician who is not the head of any department takes. 
    Return Patient name as “Patient”, Physician Name as “Primary care Physician”.   
@@ -10229,9 +10365,1258 @@ Sample table: room
    Sample table: physician
 */ 
 
+-- 1
+SELECT pa.name AS "Patient",
+	   ph.name AS "Primary care Physician"
+  FROM patient AS pa
+  JOIN physician AS ph
+    ON pa.pcp = ph.employeeid 
+ WHERE pa.ssn NOT IN (SELECT head
+						FROM department);   
+    
+-- 2
+SELECT pa.name AS "Patient",
+	   ph.name AS "Primary care Physician"
+  FROM patient AS pa
+  JOIN physician AS ph
+    ON pa.pcp = ph.employeeid 
+  LEFT JOIN department AS d
+    ON ph.employeeid = d.head
+ WHERE d.head IS NULL;
 
  
+
+
+/* PART 17.1. SQL employee Database. Basic Queries 
  
+ I suppose the exercises were created for an out-of-date database Employees. The new DB employees have more columns,
+ other names and values. So I created tables for exercises manually. Also, the suffix db was added to the table names */  
+
+-- Create the employees table
+CREATE TABLE IF NOT EXISTS employees_db (
+	   PRIMARY KEY (emp_id),
+	   emp_id     INTEGER         NOT NULL,
+	   emp_name   VARCHAR(15),
+	   job_name   VARCHAR(10),
+	   manager_id INTEGER,
+	   hire_date  DATE,
+	   salary     DECIMAL(10, 2),
+	   commission DECIMAL(7, 2),
+	   dep_id     INTEGER 	      NOT NULL
+	   );
+ 
+DROP TABLE employees_db;
+	  
+INSERT INTO employees_db (emp_id, emp_name, job_name, manager_id, hire_date, salary, commission, dep_id)
+VALUES (68319, 'KAYLING', 'PRESIDENT', NULL, '1991-11-18', 6000.00, NULL, 1001),
+	   (66928, 'BLAZE', 'MANAGER', 68319, '1991-05-01', 2750.00, NULL, 3001),
+	   (67832, 'CLARE', 'MANAGER', 68319, '1991-06-09', 2550.00, NULL, 1001),
+	   (65646, 'JONAS', 'MANAGER', 68319, '1991-04-02', 2957.00, NULL, 2001),
+	   (64989, 'ADELYN', 'SALESMAN', 66928, '1991-02-20', 1700.00, 400.00, 3001),
+	   (65271, 'WADE', 'SALESMAN', 66928, '1991-02-22', 1350.00, 600.00, 3001),
+	   (66564, 'MADDEN', 'SALESMAN', 66928, '1991-09-28', 1350.00, 1500.00, 3001),
+	   (68454, 'TUCKER', 'SALESMAN', 66928, '1991-09-08', 1600.00, 0.00, 3001),
+	   (68736, 'ADNRES', 'CLERK', 67858, '1997-05-23', 1200.00, NULL, 2001),
+	   (69000, 'JULIUS', 'CLERK', 66928, '1991-12-03', 1050.00, NULL, 3001),
+	   (69324, 'MARKER', 'CLERK', 67832, '1992-01-23', 1400.00, NULL, 1001),
+	   (67858, 'SCARLET', 'ANALYST', 65646, '1997-04-19', 3100.00, NULL, 2001),
+	   (69062, 'FRANK', 'ANALYST', 65646, '1991-12-03', 3100.00, NULL, 2001),
+	   (63679, 'SANDRINE', 'CLERK', 69062, '1990-12-18', 900.00, NULL, 2001);
+
+SELECT *
+FROM employees_db;
+
+-- Create the department table
+
+CREATE TABLE IF NOT EXISTS department_db (
+PRIMARY KEY (dep_id),
+dep_id       INTEGER,
+dep_name     VARCHAR(20),
+dep_location VARCHAR(15)
+);
+
+DROP TABLE department_db;
+
+INSERT INTO department_db (dep_id, dep_name, dep_location)
+VALUES (1001, 'FINANCE', 'SYDNEY'),
+	   (2001, 'AUDIT', 'MELBOURNE'),
+	   (3001, 'MARKETING', 'PERTH'),
+	   (4001, 'PRODUCTION', 'BRISBANE');
+
+SELECT *
+FROM department_db;
+
+-- Create the salary_grade table
+CREATE TABLE IF NOT EXISTS salary_grade_db (
+	   PRIMARY KEY (grade),
+	   grade   INTEGER NOT NULL,
+	   min_sal INTEGER,
+	   max_sal INTEGER
+	   );
+	  
+DROP TABLE salary_grade_db;	  
+
+INSERT INTO salary_grade_db (grade, min_sal, max_sal)
+VALUES (1, 800, 1300),
+	   (2, 1301, 1500),
+	   (3, 1501, 2100),
+	   (4, 2101, 3100),
+	   (5, 3101, 9999);
+	  	
+SELECT *
+FROM salary_grade_db
+
+-- Create connection
+ALTER TABLE employees_db
+	ADD CONSTRAINT fk_emp_dep
+	FOREIGN KEY (dep_id)
+	REFERENCES department_db (dep_id);
+
+-- List constraints
+SELECT con.*
+       FROM pg_catalog.pg_constraint con
+            INNER JOIN pg_catalog.pg_class rel
+                       ON rel.oid = con.conrelid
+            INNER JOIN pg_catalog.pg_namespace nsp
+                       ON nsp.oid = connamespace
+       WHERE nsp.nspname = 'public'
+             AND rel.relname = 'employees_db';
+
+SELECT *
+FROM employees_db;
+
+SELECT *
+FROM department_db;
+
+SELECT *
+FROM salary_grade_db;
+   
+SELECT *
+  FROM employees 
+ LIMIT 1000;
+
+SELECT *
+  FROM department
+ LIMIT 1000;
+
+ 
+/* Ex. 1. 
+   From the following table return complete information about the employees.  
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db;
+
+/* Ex. 2. 
+   From the following table, write a SQL query to find the salaries of all employees. 
+   Return salary.   
+   Sample table: employees
+*/ 
+ 
+SELECT salary AS "Salary"
+  FROM employees_db;
+ 
+/* Ex. 3. 
+   From the following table, write a SQL query to find the unique designations of the employees. 
+   Return job name.   
+   Sample table: employees
+*/ 
+ 
+SELECT DISTINCT job_name
+  FROM employees_db;
+ 
+/* Ex. 4. 
+   From the following table, write a SQL query to list the employees’ name, increased their salary by 15%, 
+   and expressed as number of Dollars.
+   Sample table: employees
+*/  
+
+SELECT emp_name AS "Name",
+	   1.15 * salary AS "Increased Salary",
+	   '$' AS "Currency"
+  FROM employees_db;	   
+
+/* Ex. 5. 
+   From the following table, write a SQL query to list the employee's name and job name as a format of "Employee & Job".   
+   Sample table: employees
+*/ 
+
+SELECT CONCAT(emp_name, ' ', job_name) AS "Name & Job"
+  FROM employees_db;
+
+/* Ex. 6. 
+   Write a query in SQL to produce the output of employees as follows.   
+   Employee
+   JONAS(manager).
+   Sample table: employees
+*/ 
+ 
+SELECT CONCAT(emp_name, '(', job_name, ')') AS "Name(job)"
+  FROM employees_db;
+ 
+/* Ex. 7. 
+   From the following table, write a SQL query to find those employees with hire date in the format like February 22, 1991. 
+   Return employee ID, employee name, salary, hire date.   
+   Sample table: employees
+*/ 
+ 
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Name",
+	   salary AS "Salary",
+	   TO_CHAR(hire_date, 'Month DD, YYYY') AS "Hire Date"
+  FROM employees_db;	 
+
+/* Ex. 8. 
+   From the following table, write a SQL query to count the number of characters except the spaces for each employee name. 
+   Return employee name length.   
+   Sample table: employees
+*/  
+
+SELECT LENGTH(TRIM(emp_name)) AS "Name Length"
+  FROM employees_db;
+ 
+/* Ex. 9. 
+   From the following table, write a SQL query to find the employee ID, salary, and commission of all the employees.   
+   Sample table: employees
+*/ 
+
+SELECT emp_id AS "Employee ID",
+	   salary AS "Salary",
+	   commission AS "Commision"
+  FROM employees_db;
+ 
+/* Ex. 10.  
+   From the following table, write a SQL query to find the unique department with jobs. 
+   Return department ID, Job name.   
+   Sample table: employees
+*/
+
+SELECT dep_id AS "Department ID",
+	   job_name AS "Job Name"
+  FROM employees_db;	
+ 
+/* Ex. 11. 
+   From the following table, write a SQL query to find those employees who do not belong to the department 2001. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE dep_id != 2001; 
+ 
+/* Ex. 12. 
+   From the following table, write a SQL query to find those employees who joined before 1991. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+SELECT *
+  FROM employees_db
+ WHERE hire_date < '1991-01-01'; 
+
+/* Ex. 13. 
+   From the following table, write a SQL query to compute the average salary of those employees who work as ‘ANALYST’. 
+   Return average salary.  
+   Sample table: employees
+*/ 
+
+SELECT AVG(salary) AS "Average Salary"
+  FROM employees_db 
+ WHERE job_name = 'ANALYST'; 
+
+/* Ex. 14. 
+   From the following table, write a SQL query to find the details of the employee ‘BLAZE’.   
+   Sample table: employees
+*/  
+
+SELECT *
+  FROM employees_db
+ WHERE emp_name = 'BLAZE';
+
+/* Ex. 15. 
+   From the following table, write a SQL query to find those employees whose commission is more than their salary. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT * 
+  FROM employees_db
+ WHERE commission > salary; 
+
+/* Ex. 16. 
+   From the following table, write a SQL query to find those employees whose salary exceeds 3000 after giving 25% increment. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+SELECT *
+  FROM employees_db
+ WHERE 1.25 * salary > 3000; 
+
+/* Ex. 17. 
+   From the following table, write a SQL query to find the names of the employees whose length is six. 
+   Return employee name.   
+   Sample table: employees
+*/ 
+ 
+SELECT emp_name AS "Name"
+  FROM employees_db
+ WHERE LENGTH(emp_name) = 6; 
+   
+/* Ex. 18. 
+   From the following table, write a SQL query to find those employees who joined in the month January. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+ 
+
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'Mon') = 'Jan';    
+  
+/* Ex. 19. 
+   From the following table, write a SQL query to find the name of employees and their manager separated by the string 'works for'.   
+   Sample table: employees
+*/ 
+ 
+SELECT CONCAT(emp.emp_name, ' works for ', man.emp_name) AS "Works for"
+  FROM employees_db AS emp
+  JOIN employees_db AS man 
+    ON emp.manager_id = man.emp_id; 
+
+/* Ex. 20.  
+   From the following table, write a SQL query to find those employees whose designation is ‘CLERK’. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db 
+ WHERE job_name = 'CLERK';  
+   
+/* Ex. 21. 
+   From the following table, write a SQL query to find those employees whose experience is more than 27 years.
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE EXTRACT (YEAR FROM AGE(CURRENT_DATE, hire_date)) > 27; 
+
+SELECT *
+  FROM employees_db
+ WHERE hire_date < '1995-08-25'; 
+
+/* Ex. 22. 
+   From the following table, write a SQL query to find those employees whose salaries are less than 3500. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+ 
+SELECT *
+  FROM employees_db
+ WHERE salary < 3500; 
+
+/* Ex. 23. 
+   From the following table, write a SQL query to find the employee whose designation is ‘ANALYST’. 
+   Return employee name, job name and salary.   
+   Sample table: employees
+*/ 
+
+SELECT emp_name AS "Employee Name",
+	   job_name AS "Job Name",
+	   salary AS "Salary"
+  FROM employees_db
+ WHERE job_name = 'ANALYST'; 
+
+/* Ex. 24. 
+   From the following table, write a SQL query to find those employees who have joined in the year 1991.
+   Return complete information about the employees. 
+   Sample table: employees
+*/  
+
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'YYYY') = '1991'; 
+
+/* Ex. 25. 
+   From the following table, write a SQL query to find those employees who joined before 1st April 1991. 
+   Return employee ID, employee name, hire date and salary.   
+   Sample table: employees
+*/ 
+
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   hire_date AS "Hire Date",
+	   salary AS "Salary"
+  FROM employees_db
+ WHERE hire_date < '1991-04-01'; 
+
+/* Ex. 26. 
+   From the following table, write a SQL query to find those employees who are not working under a manager. 
+   Return employee name, job name.   
+   Sample table: employees
+*/ 
+ 
+SELECT emp_name AS "Employee Name",
+	   job_name AS "Job Name"
+  FROM employees_db
+ WHERE manager_id IS NULL; 
+
+/* Ex. 27. 
+   From the following table, write a SQL query to find those employees who joined on 1st May 91. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db 
+ WHERE hire_date = '1991-05-01'; 
+
+/* Ex. 28. 
+   From the following table, write a SQL query to find those employees working under the manger whose ID is 68319. 
+   Return employee ID, employee name, salary, and age.   
+   Sample table: employees
+*/  
+ 
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   salary AS "Salary",
+	   AGE(CURRENT_DATE, hire_date) AS "Experience"  
+  FROM employees_db
+ WHERE manager_id = 68319; 
+
+/* Ex. 29. 
+   From the following table, write a SQL query to find those employees who earn more than 100 as daily salary. 
+   Return employee ID, employee name, salary, and age.   
+   Sample table: employees
+*/ 
+
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   salary AS "Salary",
+	   AGE(CURRENT_DATE, hire_date) AS "Experience"  
+  FROM employees_db
+ WHERE salary / 30 > 100; 
+ 
+/* Ex. 30.  
+   From the following table, write a SQL query to find those employees who retired after 31-Dec-99, completion of 8 years of service period. 
+   Return employee name.   
+   Sample table: employees
+*/
+
+SELECT emp_name AS "Employee Name"
+  FROM employees_db
+ WHERE hire_date + INTERVAL '8 years' > '1999-12-31'; 
+
+/* Ex. 31. 
+   From the following table, write a SQL query to find those employees whose salary is an odd value. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE salary % 2 != 0; 
+
+/* Ex. 32. 
+   From the following table, write a SQL query to find those employees whose salary contains only three digits. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+SELECT *
+  FROM employees_db 
+ WHERE LENGTH(TRIM(TO_CHAR(salary, '9999'))) = 3; 
+
+SELECT salary,
+	   TO_CHAR(salary, '9999'),
+	   TRIM(TO_CHAR(salary, '9999')),
+	   LENGTH(TRIM(TO_CHAR(salary, '9999')))
+  FROM employees_db;
+ 
+/* Ex. 33. 
+   From the following table, write a SQL query to find those employees who joined in the month of APRIL. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT * 
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'MON') = 'APR'; 
+
+/* Ex. 34. 
+   From the following table, write a SQL query to find those employees who joined in the company before 19th of a month. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'DD') < '19'; 
+
+/* Ex. 35. 
+   From the following table, write a SQL query to find those employees who are SALESMAN and and month portion of the experience is more than 10. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE job_name = 'SALESMAN'
+   AND EXTRACT (MONTH FROM AGE(CURRENT_DATE, hire_date)) > 10;
+
+/* Ex. 36. 
+   From the following table, write a SQL query to find those employees of department id 3001 or 1001 and joined in the year 1991. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+-- 1
+SELECT *
+  FROM employees_db
+ WHERE dep_id IN (1001, 3001)
+   AND TO_CHAR(hire_date, 'YYYY') = '1991';
+  
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE dep_id IN (1001, 3001)
+   AND EXTRACT (YEAR FROM hire_date) = '1991';  
+
+/* Ex. 37. 
+   From the following table, write a SQL query to find those employees who are working for the department ID 1001 or 2001.
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+SELECT *
+  FROM employees_db
+ WHERE dep_id IN (1001, 2001); 
+
+/* Ex. 38. 
+   From the following table, write a SQL query to find those employees whose designation is ‘CLERK’ and work in the department ID 2001. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+
+SELECT *
+  FROM employees_db
+ WHERE job_name = 'CLERK'
+   AND dep_id = 2001;
+ 
+/* Ex. 39. 
+   From the following table, write a query in SQL to find those employees where -   
+	1. the employees receive some commission which should not be more than the salary and annual salary including commission is below 34000.
+	2. Designation is ‘SALESMAN’ and working in the department ‘3001’. 
+	Return employee ID, employee name, salary and job name.
+	Sample table: employees
+*/ 
+
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   salary AS "Salary",
+	   job_name AS "Job Name"
+  FROM employees_db
+ WHERE commission < salary
+   AND salary IS NOT NULL
+   AND 12 * (salary + commission) < 34000
+   AND job_name = 'SALESMAN'
+   AND dep_id = 3001;
+   
+/* Ex. 40.  
+   From the following table, write a SQL query to find those employees who are either CLERK or MANAGER. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/
+
+SELECT * 
+  FROM employees_db
+ WHERE job_name IN ('CLERK', 'MANAGER'); 
+  
+/* Ex. 41. 
+   From the following table, write a SQL query to find those employees who joined in any year except the month of February. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+-- 1
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'MON') != 'FEB'; 
+
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE EXTRACT (MONTH FROM hire_date) != 2;  
+
+/* Ex. 42. 
+   From the following table, write a SQL query to find those employees who joined in the year 91. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+-- 1
+SELECT * 
+  FROM employees_db 
+ WHERE TO_CHAR(hire_date, 'YYYY') = '1991';
+
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE EXTRACT (YEAR FROM hire_date) = '1991'; 
+
+-- 3
+SELECT *
+  FROM employees_db
+ WHERE hire_date BETWEEN '1991-01-01' AND '1991-12-31'; 
+
+/* Ex. 43. 
+   From the following table, write a SQL query to find those employees who joined in the month of June 1991. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+
+-- 1
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'YYYY-MM') = '1991-06'; 
+
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'MON-YYYY') = 'JUN-1991'; 
+
+-- 3
+SELECT *
+  FROM employees_db 
+ WHERE EXTRACT (YEAR FROM hire_date) = '1991'
+   AND EXTRACT (MONTH FROM hire_date) = '06';
+  
+-- 4
+SELECT *
+  FROM employees_db
+ WHERE hire_date BETWEEN '1991-06-01' AND '1991-06-30' 
+
+/* Ex. 44. 
+   From the following table, write a SQL query to find all the employees whose annual salary is within the range 24000 and 50000 (Begin and end values are included.). 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+
+SELECT *
+  FROM employees_db
+ WHERE 12 * salary BETWEEN 24000 AND 50000; 
+ 
+/* Ex. 45. 
+   From the following table, write a SQL query to find all those employees who have joined on 1st May, 20th Feb, and 3rd Dec in the year 1991. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE hire_date IN ('1991-05-01', '1991-02-20', '1991-12-03'); 
+
+/* Ex. 46. 
+   From the following table, write a SQL query to find those employees working under the managers 63679 or 68319 or 66564 or 69000. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE manager_id IN (63679, 68319, 66564, 69000); 
+ 
+/* Ex. 47. 
+   From the following table, write a SQL query to find those employees who joined after the month JUNE in the year 1991 and within this year. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE hire_date BETWEEN '1991-06-01' AND '1991-12-31'; 
+ 
+/* Ex. 48. 
+   From the following table, write a SQL query to find those employees who joined in 90's. Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE hire_date BETWEEN '1990-01-01' AND '1999-12-31'; 
+ 
+/* Ex. 49. 
+   From the following table, write a SQL query to find those managers who are in the department 1001 or 2001. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE job_name = 'MANAGER'
+   AND dep_id IN (1001, 2001); 
+
+/* Ex. 50.  
+   From the following table, write a SQL query to find those employees who joined in the month FEBRUARY with a salary range between 1001 to 2000 
+   (Begin and end values are included.). 
+   Return complete information about the employees.   
+   Sample table: employees
+*/
+
+SELECT *
+  FROM employees_db
+ WHERE TO_CHAR(hire_date, 'MON') = 'FEB'
+   AND salary BETWEEN 1001 AND 2000;
+
+/* Ex. 51. 
+   From the following table, write a SQL query to find those employees who joined before or after the year 1991. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db 
+ WHERE TO_CHAR(hire_date, 'YYYY') != '1991';
+
+/* Ex. 52. 
+   From the following tables, write a SQL query to find employees along with department name. 
+   Return employee ID, employee name, job name, manager ID, hire date, salary, commission, department ID, and department name.   
+   Sample table: employees
+   Sample table: department
+*/ 
+ 
+SELECT e.emp_id AS "Employee ID",
+	   e.emp_name AS "Employee Name",
+	   e.job_name AS "Job Name",
+	   e.manager_id AS "Manager ID",
+	   e.hire_date AS "Hire Date",
+	   e.salary AS "Salary",
+	   e.commission AS "Commission",
+	   e.dep_id AS "Department ID",
+	   d.dep_name AS "Department Name"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id;
+   
+/* Ex. 53. 
+   From the following tables, write a SQL query to find those employees who earn 60000 or more in a year or not working as an ANALYST. 
+   Return employee name, job name, (12*salary) as Annual Salary, department ID, department name and grade.  
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/ 
+
+	   
+SELECT e.emp_name AS "Employee Name",
+	   e.job_name AS "Job Name",
+	   e.salary * 12 AS "Annual Salary",
+	   e.dep_id AS "Department ID",
+	   d.dep_name AS "Department Name",
+	   sg.grade AS "Grade"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE e.salary * 12 >= 60000
+    OR e.job_name != 'ANALYST';
+   
+/* Ex. 54. 
+   From the following table, write a SQL query to find those employees whose salary is higher than the salary of their managers. 
+   Return employee name, job name, manager ID, salary, manager name, manager's salary.   
+   Sample table: employees
+*/  
+
+SELECT e.emp_name AS "Employee Name",
+	   e.job_name AS "Job Name",
+	   e.salary AS "Salary",
+	   m.manager_id AS "Manager ID",
+	   m.emp_name AS "Manager Name",
+	   m.salary AS "Manager Salary"
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE e.salary > m.salary;
+ 
+/* Ex. 55. 
+   From the following table, write a SQL query to find those employees whose salary is between 2000 and 5000 
+   (Begin and end values are included.) and location is PERTH. 
+   Return employee name, department ID, salary, and commission.   
+   Sample table: employees
+   Sample table: department
+*/ 
+
+SELECT emp_name AS "Employee Name",
+	   dep_id AS "Department ID",
+	   salary AS "Salary",
+	   commission AS "Commission"
+  FROM employees_db AS e
+  JOIN department_db AS d
+ USING (dep_id)
+ WHERE dep_location = 'PERTH'
+   AND salary BETWEEN 2000 AND 5000;
+
+/* Ex. 56. 
+   From the following table, write a SQL query to find those employees whose department ID is 1001 or 3001 and salary grade is not 4. 
+   They joined the company before 1992-12-31. Return grade, employee name.  
+   Sample table: employees
+   Sample table: salary_grade
+*/ 
+ 
+SELECT sg.grade AS "Grade",
+	   e.emp_name AS "Employee Name"
+  FROM employees_db AS e
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE e.dep_id IN (1001, 3001)
+   AND sg.grade != 4
+   AND e.hire_date < '1992-12-31';
+ 
+/* Ex. 57. 
+   From the following table, write a SQL query to find those employees whose manager name is JONAS. 
+   Return employee id, employee name, job name, manager ID, hire date, salary, department ID, employee name.   
+   Sample table: employees
+*/ 
+
+SELECT emp1.emp_id AS "Employee ID",
+	   emp1.emp_name AS "Employee Name",
+	   emp1.job_name AS "Job Name",
+	   emp1.manager_id AS "Manager ID",
+	   emp1.hire_date AS "Hire Date",
+	   emp1.salary AS "Salary",
+	   emp1.dep_id AS "Department ID"
+  FROM employees_db AS emp1
+  JOIN employees_db AS emp2
+    ON emp1.manager_id = emp2.emp_id
+ WHERE emp2.emp_name = 'JONAS';
+  
+/* Ex. 58. 
+   From the following table, write a SQL query to find the name and salary of the employee FRANK. 
+   Salary should be equal to the maximum salary within his or her salary group.   
+   Sample table: employees
+   Sample table: salary_grade
+*/  
+ 
+SELECT edb.emp_name AS "Name",
+	   edb.salary AS "Salary"
+  FROM employees_db AS edb
+  JOIN salary_grade_db AS sgdb
+    ON edb.salary BETWEEN sgdb.min_sal AND sgdb.max_sal
+ WHERE edb.emp_name = 'FRANK'
+   AND edb.salary = sgdb.max_sal; 
+
+/* Ex. 59. 
+   From the following table, write a SQL query to find those employees who are working either as a MANAGER or an ANALYST with a salary 
+   in the range 2000, 5000 (Begin and end values are included.) without any commission. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+SELECT *
+  FROM employees_db
+ WHERE job_name IN ('MANAGER', 'ANALYST') 
+   AND commission IS NULL
+   AND salary BETWEEN 2000 AND 5000;
+ 
+/* Ex. 60.  
+   From the following table, write a SQL query to find those employees working at PERTH, or MELBOURNE with an experience over 10 years. 
+   Return employee ID, employee name, department ID, salary, and department location.  
+   Sample table: employees
+   Sample table: department
+*/
+
+SELECT e.emp_id AS "Employees ID",
+	   e.emp_name AS "Employee Name",
+	   e.dep_id AS "Department ID",
+	   e.salary AS "Salary",
+	   d.dep_location AS "Department Location"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ WHERE d.dep_location IN ('PERTH', 'MELBOURNE') 
+   AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, hire_date)) > 10;
+   
+/* Ex. 61. 
+   From the following table, write a SQL query to find those employees whose department location is SYDNEY or MELBOURNE with a 
+   salary range of 2000, 5000 (Begin and end values are included.) and joined in 1991. 
+   Return employee ID, employee name, department ID, salary, and department location.  
+   Sample table: employees
+   Sample table: department
+*/ 
+
+   
+SELECT *
+FROM employees_db;
+
+SELECT *
+FROM department_db;
+
+SELECT *
+FROM salary_grade_db;   
+
+/* Ex. 62. 
+   From the following table, write a SQL query to find those employees of MARKETING department come from MELBOURNE or PERTH within 
+   the grade 3 ,4, and 5 and experience over 25 years. 
+   Return department ID, employee ID, employee name, salary, department name, department location and grade.  
+   Sample table: employees
+   Sample table: salary_grade
+   Sample table: department
+*/ 
+ 
+/* Ex. 63. 
+   From the following table, write a SQL query to find those employees who are senior to their manager. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 64. 
+   From the following tables, write a SQL query to find those employees whose grade is 4 and salary between minimum and maximum salary. 
+   Return all information of each employees and their grade and salary related details.   
+   Sample table: employees
+   Sample table: salary_grade
+*/  
+
+/* Ex. 65. 
+   From the following tables, write a SQL query to find those employees, excluding MARKER or ADELYN of the department PRODUCTION or 
+   AUDIT and joined after 1991. 
+   Return employee name.  
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/ 
+
+/* Ex. 66. 
+   From the following table, write a SQL query to find the employees and their salaries. Sort the result-set in ascending order by salaries. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+ 
+/* Ex. 67. 
+   From the following table, write a SQL query to list employees in ascending order on department ID and descending order on jobs. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+ 
+/* Ex. 68. 
+   From the following table, write a SQL query to find the entire unique jobs in descending order. 
+   Return job name.  
+   Sample table: employees
+*/  
+ 
+/* Ex. 69. 
+   From the following table, write a SQL query to find the employees in the ascending order of their annual salary. 
+   Return employee ID, employee name, monthly salary, salary/30 as Daily_Salary, and 12*salary as Anual_Salary.  
+   Sample table: employees
+*/ 
+
+/* Ex. 70.  
+   From the following table, write a SQL query to find those employees who are either 'CLERK' or 'ANALYST’. 
+   Sort the result set in descending order on job_name. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/
+
+/* Ex. 71. 
+   From the following table, write a SQL query to find the department location of employee ‘CLARE’. 
+   Return department location.   
+   Sample table: employees
+   Sample table: department
+*/ 
+
+/* Ex. 72. 
+   From the following table, write a SQL query to find those employees who joined on 1-MAY-91, or 3-DEC-91, or 19-JAN-90. 
+   Sort the result-set in ascending order by hire date. 
+   Return complete information about the employees.
+   Sample table: employees
+*/ 
+ 
+/* Ex. 73. 
+   From the following table, write a SQL query to find those employees who draw salary less than 1000. 
+   Sort the result-set in ascending order by salary. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 74. 
+   From the following table, write a SQL query to list the employees in ascending order on the salary. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+
+/* Ex. 75. 
+   From the following table, write a SQL query to list the employees in the ascending order on job name and descending order on employee id. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+/* Ex. 76. 
+   From the following table, write a SQL query to list the unique jobs of department 2001 and 3001 in descending order. 
+   Return job name.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 77. 
+   From the following table, write a SQL query to list all the employees except PRESIDENT and MANAGER in ascending order of salaries. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 78. 
+   From the following table, write a SQL query to find the employees whose annual salary is below 25000. 
+   Sort the result set in ascending order of the salary. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+ 
+/* Ex. 79. 
+   From the following table, write a SQL query to list the employees who works as a SALESMAN. 
+   Sort the result set in ascending order of annual salary. 
+   Return employee id, name, annual salary, daily salary of all the employees.   
+   Sample table: employees
+*/ 
+
+/* Ex. 80.  
+   From the following table, write a SQL query to list the employee ID, name, hire date, current date and experience of the employees 
+   in ascending order on their experiences.   
+   Sample table: employees
+*/
+
+/* Ex. 81. 
+   From the following table, write a SQL query to list the employees in ascending order of designations of those joined after the second half of 1991.  
+   Sample table: employees
+*/ 
+
+/* Ex. 82. 
+   From the following tables, write a SQL query to find the location of all the employees working in FINANCE or AUDIT department. 
+   Sort the result-set in ascending order by department ID. 
+   Return complete information about the employees.   
+   Sample table: employees
+   Sample table: department
+*/ 
+ 
+/* Ex. 83. 
+   From the following tables, write a SQL query to find the employees along with grades in ascending order. 
+   Return complete information about the employees.   
+   Sample table: employees
+   Sample table: salary_grade
+*/ 
+ 
+/* Ex. 84. 
+   From the following table, write a SQL query to find the employees according to the department in ascending order. 
+   Return name, job name, department, salary, and grade.   
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/  
+
+/* Ex. 85. 
+   From the following tables, write a SQL query to find all employees except CLERK and sort the result-set in descending order by salary. 
+   Return employee name, job name, salary, grade and department name.  
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/ 
+
+/* Ex. 86. 
+   From the following table, write a SQL query to find those employees work in the department 1001 or 2001. 
+   Return employee ID, name, salary, department, grade, experience, and annual salary.  
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/ 
+ 
+/* Ex. 87. 
+   From the following table, write a SQL query to list the details of the employees along with the details of their departments.   
+   Sample table: employees
+   Sample table: department
+*/ 
+ 
+/* Ex. 88. 
+   From the following table, write a SQL query to list the employees who are senior to their MANAGERS. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/  
+ 
+/* Ex. 89. 
+   From the following table, write a SQL query to find those employees who work in the department 1001. 
+   Sort the result-set in ascending order by salary. 
+   Return employee ID, employee name, salary and department ID.  
+   Sample table: employees
+*/ 
+
+/* Ex. 90.  
+   From the following table, write a SQL query to find the highest salary. 
+   Return highest salary.   
+   Sample table: employees
+*/
+
+/* Ex. 91. 
+   From the following table, write a SQL query to find the average salary and average total remuneration (salary and commission) 
+   for each type of job. 
+   Return name, average salary and average total remuneration.   
+   Sample table: employees
+*/ 
+
+/* Ex. 92. 
+   From the following table, write a SQL query to compute the total annual salary distributed against each job in the year 1991. 
+   Return job name, total annual salary.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 93. 
+   From the following table, write a SQL query to list the employee id, name, department id, location of all the employees.   
+   Sample table: employees
+   Sample table: department
+*/ 
+ 
+/* Ex. 94. 
+   From the following table, write a SQL query to find those employees who work in the department ID 1001 or 2001. 
+   Return employee ID, employee name, department ID, department location, and department name.   
+   Sample table: employees
+   Sample table: department
+*/  
+
+/* Ex. 95. 
+   From the following table, write a SQL query to find those employees whose salary is in the range minimum and maximum salary 
+   (Begin and end values are included.). 
+   Return employee ID, name, salary and grade.   
+   Sample table: employees
+   Sample table: salary_grade
+*/ 
+
+/* Ex. 96. 
+   From the following table, write a SQL query to list the managers and number of employees work under them. 
+   Sort the result set in ascending order on manager. 
+   Return manager ID and number of employees under them.  
+   Sample table: employees
+*/ 
+ 
+/* Ex. 97. 
+   From the following table, write a SQL query to count the number of employees of each designation in each department. 
+   Return department id, job name and number of employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 98. 
+   From the following table, write a SQL query to find those departments where at least two employees work. 
+   Return department id, number of employees.   
+   Sample table: employees
+*/  
+ 
+/* Ex. 99. 
+   From the following table, write a SQL query to list the grade, number of employees, and maximum salary of each grade.   
+   Sample table: employees
+   Sample table: salary_grade
+*/ 
+
+/* Ex. 100.  
+   From the following table, write a SQL query to find those departments where at least two employees work as a SALESMAN in each grade. 
+   Return department name, grade and number of employees.   
+   Sample table: employees
+   Sample table: department
+   Sample table: salary_grade
+*/
+
+/* Ex. 101. 
+   From the following table, write a SQL query to find those departments where less than four employees work. 
+   Return department ID, number of employees.  
+   Sample table: employees
+*/ 
+
+/* Ex. 102. 
+   From the following tables, write a SQL query to find those departments where at least two employees work. 
+   Return department name, number of employees.   
+   Sample table: employees
+   Sample table: department
+*/ 
+ 
+/* Ex. 103. 
+   From the following table, write a SQL query to check whether the employees ID are unique or not. 
+   Return employee id, number of employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 104. 
+   From the following table, write a SQL query to find number of employees and average salary. 
+   Group the result set on department id and job name. 
+   Return number of employees, average salary, department ID, and job name.   
+   Sample table: employees
+*/  
+
+/* Ex. 105. 
+   From the following table, write a SQL query to find those employees whose name start with 'A' and six characters in length. 
+   Return employee name.   
+   Sample table: employees
+*/ 
+
+/* Ex. 106. 
+   From the following table, write a SQL query to find those employees whose name is six characters in length and the third character must be 'R'. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 107. 
+   From the following table, write a SQL query to find those employees whose name is six characters in length, 
+   starting with 'A' and ending with 'N'. 
+   Return number of employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 108. 
+   From the following table, write a SQL query to find those employees who joined in the month of where the second letter is 'a'. 
+   Return number of employees.   
+   Sample table: employees
+*/  
+ 
+/* Ex. 109. 
+   From the following table, write a SQL query to find those employees whose names contain the character set 'AR' together. 
+   Return complete information about the employees. 
+   Sample table: employees
+*/ 
+
+/* Ex. 110.  
+   From the following table, write a SQL query to find those employees who joined in 90's. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/
+
+/* Ex. 111. 
+   From the following table, write a SQL query to find those employees whose ID not start with the digit 68. 
+   Return employee ID, employee ID using trim function.   
+   Sample table: employees
+*/ 
+
+/* Ex. 112. 
+   From the following table, write a SQL query to find those employees whose names contain the letter 'A’. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 113. 
+   From the following table, write a SQL query to find those employees whose name ends with 'S' and six characters long. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+/* Ex. 114. 
+   From the following table, write a SQL query to find those employees who joined in any month, but the month name contain the character ‘A’. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/  
+
+/* Ex. 115. 
+   From the following table, write a SQL query to find those employees who joined in any month, but the name of the month contain the character ‘A’ 
+   in second position. Return complete information about the employees.   
+   Sample table: employees
+*/ 
+
+
+
  
  
 /* PART 15.1. SQL VIEW */  
@@ -10274,9 +11659,4 @@ Sample table: room
 
 /* Ex. 10.  
    
-*/
- 
- 
- 
- 
- 
+
