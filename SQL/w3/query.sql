@@ -11239,7 +11239,7 @@ SELECT e.emp_id AS "Employees ID",
   JOIN department_db AS d
     ON e.dep_id = d.dep_id
  WHERE d.dep_location IN ('PERTH', 'MELBOURNE') 
-   AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, hire_date)) > 10;
+   AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.hire_date)) > 10;
    
 /* Ex. 61. 
    From the following table, write a SQL query to find those employees whose department location is SYDNEY or MELBOURNE with a 
@@ -11249,15 +11249,17 @@ SELECT e.emp_id AS "Employees ID",
    Sample table: department
 */ 
 
-   
-SELECT *
-FROM employees_db;
-
-SELECT *
-FROM department_db;
-
-SELECT *
-FROM salary_grade_db;   
+SELECT e.emp_id AS "Employees ID",
+	   e.emp_name AS "Employee Name",
+	   e.dep_id AS "Department ID",
+	   e.salary AS "Salary",
+	   d.dep_location AS "Department Location"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ WHERE d.dep_location IN ('PERTH', 'MELBOURNE') 
+   AND EXTRACT(YEAR FROM(e.hire_date)) = 1991
+   AND e.salary BETWEEN 2000 AND 5000;
 
 /* Ex. 62. 
    From the following table, write a SQL query to find those employees of MARKETING department come from MELBOURNE or PERTH within 
@@ -11268,18 +11270,48 @@ FROM salary_grade_db;
    Sample table: department
 */ 
  
+SELECT e.dep_id AS "Department ID",
+	   e.emp_id AS "Employee ID",
+	   e.emp_name AS "Employee Name",
+	   e.salary AS "Salary",
+	   d.dep_name AS "Department Name",
+	   d.dep_location AS "Department Location",
+	   sg.grade AS "Grade"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND max_sal
+ WHERE d.dep_location IN ('MELBOURNE', 'PERTH')
+   AND sg.grade IN (3, 4, 5)
+   AND EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.hire_date)) > 25
+   AND d.dep_name = 'MARKETING';
+  
+  
 /* Ex. 63. 
    From the following table, write a SQL query to find those employees who are senior to their manager. 
    Return complete information about the employees.   
    Sample table: employees
 */ 
  
+SELECT *
+  FROM employees_db AS emp
+  JOIN employees_db AS man
+    ON emp.manager_id = man.emp_id
+ WHERE emp.hire_date < man.hire_date;
+  
 /* Ex. 64. 
    From the following tables, write a SQL query to find those employees whose grade is 4 and salary between minimum and maximum salary. 
    Return all information of each employees and their grade and salary related details.   
    Sample table: employees
    Sample table: salary_grade
 */  
+
+SELECT * 
+  FROM employees_db AS e
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE sg.grade = 4;   
 
 /* Ex. 65. 
    From the following tables, write a SQL query to find those employees, excluding MARKER or ADELYN of the department PRODUCTION or 
@@ -11290,29 +11322,59 @@ FROM salary_grade_db;
    Sample table: salary_grade
 */ 
 
+SELECT e.emp_name AS "Employee Name"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE e.hire_date > '1991-12-31'
+   AND d.dep_name IN ('PRODUCTION', 'AUDIT')
+   AND e.emp_name NOT IN ('MARKER', 'ADELYN');
+
 /* Ex. 66. 
    From the following table, write a SQL query to find the employees and their salaries. Sort the result-set in ascending order by salaries. 
    Return complete information about the employees.  
    Sample table: employees
 */ 
  
+SELECT *
+  FROM employees_db
+ ORDER BY salary; 
+  
 /* Ex. 67. 
    From the following table, write a SQL query to list employees in ascending order on department ID and descending order on jobs. 
    Return complete information about the employees.  
    Sample table: employees
 */ 
  
+SELECT *
+  FROM employees_db
+ ORDER BY dep_id, job_name DESC; 
+
 /* Ex. 68. 
    From the following table, write a SQL query to find the entire unique jobs in descending order. 
    Return job name.  
    Sample table: employees
 */  
  
+SELECT DISTINCT job_name AS "Job Name"
+  FROM employees_db
+ ORDER BY job_name DESC; 
+  
 /* Ex. 69. 
    From the following table, write a SQL query to find the employees in the ascending order of their annual salary. 
    Return employee ID, employee name, monthly salary, salary/30 as Daily_Salary, and 12*salary as Anual_Salary.  
    Sample table: employees
 */ 
+
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   salary AS "Month Salary",
+	   ROUND(salary / 30, 2) AS "Daily Salary",
+	   12 * salary AS "Annual Salary"
+  FROM employees_db
+ ORDER BY "Annual Salary"; 
 
 /* Ex. 70.  
    From the following table, write a SQL query to find those employees who are either 'CLERK' or 'ANALYST’. 
@@ -11321,12 +11383,38 @@ FROM salary_grade_db;
    Sample table: employees
 */
 
+SELECT * 
+  FROM employees_db 
+ WHERE job_name IN ('CLERK', 'ANALYST')
+ ORDER BY job_name DESC;
+
 /* Ex. 71. 
    From the following table, write a SQL query to find the department location of employee ‘CLARE’. 
    Return department location.   
    Sample table: employees
    Sample table: department
 */ 
+
+-- 1
+SELECT dep_location AS "Department Location"
+  FROM employees_db
+  JOIN department_db 
+ USING (dep_id)
+ WHERE emp_name = 'CLARE';
+
+-- 2
+SELECT d.dep_location AS "Department Location"
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ WHERE emp_name = 'CLARE';
+
+-- 3
+SELECT dep_location AS "Department Location"
+  FROM department_db 
+ WHERE dep_id = (SELECT dep_id 
+ 				   FROM employees_db 
+ 				  WHERE emp_name = 'CLARE'); 
 
 /* Ex. 72. 
    From the following table, write a SQL query to find those employees who joined on 1-MAY-91, or 3-DEC-91, or 19-JAN-90. 
@@ -11335,6 +11423,16 @@ FROM salary_grade_db;
    Sample table: employees
 */ 
  
+
+SELECT *
+FROM employees_db;
+
+SELECT *
+FROM department_db;
+
+SELECT *
+FROM salary_grade_db;
+
 /* Ex. 73. 
    From the following table, write a SQL query to find those employees who draw salary less than 1000. 
    Sort the result-set in ascending order by salary. 
