@@ -11422,16 +11422,11 @@ SELECT dep_location AS "Department Location"
    Return complete information about the employees.
    Sample table: employees
 */ 
- 
 
 SELECT *
-FROM employees_db;
-
-SELECT *
-FROM department_db;
-
-SELECT *
-FROM salary_grade_db;
+  FROM employees_db
+ WHERE hire_date IN ('1991-05-01', '1991-12-03', '1990-01-19')
+ ORDER BY hire_date; 
 
 /* Ex. 73. 
    From the following table, write a SQL query to find those employees who draw salary less than 1000. 
@@ -11439,12 +11434,21 @@ FROM salary_grade_db;
    Return complete information about the employees.   
    Sample table: employees
 */ 
- 
+
+SELECT *
+  FROM employees_db
+ WHERE salary < 1000
+ ORDER BY salary;
+
 /* Ex. 74. 
    From the following table, write a SQL query to list the employees in ascending order on the salary. 
    Return complete information about the employees.   
    Sample table: employees
 */  
+
+SELECT *
+  FROM employees_db
+ ORDER BY salary; 
 
 /* Ex. 75. 
    From the following table, write a SQL query to list the employees in the ascending order on job name and descending order on employee id. 
@@ -11452,25 +11456,44 @@ FROM salary_grade_db;
    Sample table: employees
 */ 
 
+SELECT *
+  FROM employees_db
+ ORDER BY job_name, emp_id DESC; 
+
 /* Ex. 76. 
    From the following table, write a SQL query to list the unique jobs of department 2001 and 3001 in descending order. 
    Return job name.   
    Sample table: employees
 */ 
  
+SELECT DISTINCT job_name AS "Job Name"
+  FROM employees_db
+ WHERE dep_id IN (2001, 3001)
+ ORDER BY "Job Name" DESC;
+
 /* Ex. 77. 
    From the following table, write a SQL query to list all the employees except PRESIDENT and MANAGER in ascending order of salaries. 
    Return complete information about the employees.   
    Sample table: employees
 */ 
- 
+
+SELECT *
+  FROM employees_db
+ WHERE job_name NOT IN ('PRESIDENT', 'MANAGER')
+ ORDER BY salary;
+
 /* Ex. 78. 
    From the following table, write a SQL query to find the employees whose annual salary is below 25000. 
    Sort the result set in ascending order of the salary. 
    Return complete information about the employees.   
    Sample table: employees
 */  
- 
+
+SELECT *
+  FROM employees_db
+ WHERE salary * 12 < 25000
+ ORDER BY salary;
+
 /* Ex. 79. 
    From the following table, write a SQL query to list the employees who works as a SALESMAN. 
    Sort the result set in ascending order of annual salary. 
@@ -11478,16 +11501,37 @@ FROM salary_grade_db;
    Sample table: employees
 */ 
 
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   salary * 12 AS "Annual Salary",
+	   ROUND(12 *salary / 365, 2) AS "Daily Salary"
+  FROM employees_db
+ WHERE job_name = 'SALESMAN'
+ ORDER BY "Annual Salary";
+
 /* Ex. 80.  
    From the following table, write a SQL query to list the employee ID, name, hire date, current date and experience of the employees 
    in ascending order on their experiences.   
    Sample table: employees
 */
 
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   hire_date AS "Hire Date",
+	   CURRENT_DATE AS "Current Date",
+	   AGE(CURRENT_DATE, hire_date) AS "Experience"
+  FROM employees_db
+ ORDER BY "Experience"; 
+
 /* Ex. 81. 
    From the following table, write a SQL query to list the employees in ascending order of designations of those joined after the second half of 1991.  
    Sample table: employees
 */ 
+
+SELECT *
+  FROM employees_db
+ WHERE hire_date > '1991-06-30'
+ ORDER BY job_name;
 
 /* Ex. 82. 
    From the following tables, write a SQL query to find the location of all the employees working in FINANCE or AUDIT department. 
@@ -11497,13 +11541,29 @@ FROM salary_grade_db;
    Sample table: department
 */ 
  
+SELECT *
+  FROM employees_db
+  JOIN department_db
+ USING (dep_id)
+ WHERE dep_name IN ('FINANCE', 'AUDIT')
+ ORDER BY dep_id;
+
 /* Ex. 83. 
    From the following tables, write a SQL query to find the employees along with grades in ascending order. 
    Return complete information about the employees.   
    Sample table: employees
    Sample table: salary_grade
 */ 
- 
+
+
+SELECT *
+FROM employees_db;
+
+SELECT *
+FROM department_db;
+
+SELECT *
+FROM salary_grade_db;
 /* Ex. 84. 
    From the following table, write a SQL query to find the employees according to the department in ascending order. 
    Return name, job name, department, salary, and grade.   
