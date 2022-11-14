@@ -12933,7 +12933,300 @@ SELECT e.emp_name AS "Employee Name",
    Sample table: employees
 */  
   
- 					 		 
+SELECT *
+  FROM employees_db
+ WHERE salary >= (SELECT (MIN(salary) + MAX(salary))/2
+ 					FROM employees_db); 
+
+/* Ex. 35. 
+   From the following table, write a SQL query to find those managers whose salary is more than the average salary 
+   of his employees. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+-- 1 				
+  WITH avg_sal AS (SELECT manager_id, 
+  						  ROUND(AVG(salary), 2) AS avg_salary
+  					 FROM employees_db
+  					GROUP BY manager_id) 			
+SELECT *
+  FROM employees_db AS e, 
+  	   avg_sal AS avs	
+ WHERE e.emp_id = avs.manager_id
+   AND e.salary > avs.avg_salary;
+  
+-- 2 					 		 
+  WITH avg_sal AS (SELECT manager_id, 
+  						  ROUND(AVG(salary), 2) AS avg_salary
+  					 FROM employees_db
+  					GROUP BY manager_id) 			
+SELECT *
+  FROM employees_db AS e
+  JOIN avg_sal AS avs
+    ON e.emp_id = avs.manager_id
+   AND e.salary > avs.avg_salary;
+	
+  
+/* Ex. 36. 
+   From the following table, write a SQL query to find those employees whose salary is less than the salary of 
+   his manager but more than the salary of any other manager. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+ 
+-- 1  
+SELECT *
+  FROM employees_db AS emp,
+       employees_db AS man
+ WHERE emp.manager_id = man.emp_id
+   AND emp.salary < man.salary
+   AND emp.salary > ANY (SELECT salary
+   					       FROM employees_db 
+   					      WHERE emp_id IN (SELECT manager_id
+   					            			 FROM employees_db));
+
+-- 2   					            			
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE e.salary < m.salary
+   AND e.salary > ANY (SELECT salary
+   						 FROM employees_db 
+   						WHERE emp_id IN (SELECT manager_id
+   										   FROM employees_db));
+ 
+-- 3   										  
+  WITH oth_man AS (SELECT m.salary
+  					 FROM employees_db AS e
+  					 JOIN employees_db AS m
+  					   ON e.manager_id = m.emp_id) 
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE e.salary < m.salary
+   AND e.salary > ANY (SELECT salary 
+   						 FROM oth_man);  					   
+ 
+/* Ex. 37. 
+   From the following table, write a SQL query to compute department wise average salary of employees. 
+   Return employee name, average salary, department ID as "Current Salary".   
+   Sample table: employees
+*/ 
+
+  WITH avg_sal_dep AS (SELECT dep_id,
+  	   			    	      ROUND(AVG(salary), 2) AS avg_sal
+  					     FROM employees_db
+ 					    GROUP BY dep_id)
+SELECT e.emp_name AS "Employee Name",
+	   asd.avg_sal AS "Average Salary",
+	   e.dep_id AS "Department ID",
+	   e.salary AS "Current Salary"
+  FROM employees_db AS e
+  JOIN avg_sal_dep AS asd 
+    ON e.dep_id = asd.dep_id;  
+    						
+/* Ex. 38. 
+   From the following table, write a SQL query to find five lowest paid workers. Return complete 
+   information about the employees.   
+   Sample table: employees
+*/  
+ 
+-- 1 (but it does not work correctly when multiple people have the same low salary)  
+SELECT *
+  FROM employees_db
+ ORDER BY salary
+ LIMIT 5;
+
+-- 2 
+SELECT *
+  FROM (SELECT *, 
+  			   DENSE_RANK() OVER (ORDER BY salary) as dr_salary
+  		  FROM employees_db) AS rank_sal
+ WHERE dr_salary < 6;  		  
+   
+/* Ex. 39. 
+   From the following table, write a SQL query to find those managers who are not working under the PRESIDENT. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/
+
+SELECT *
+  FROM employees_db
+ WHERE manager_id != (SELECT emp_id
+ 					    FROM employees_db 
+ 					   WHERE job_name = 'PRESIDENT')
+   AND emp_id IN (SELECT manager_id
+  					FROM employees_db); 			
+
+/* Ex. 40. 
+   From the following table, write a SQL query to find those employees whose net pay is more than any other 
+   employee receive. 
+   Return employee name, salary, and commission. 
+   Sample table: employees
+*/ 
+  WITH emp_with_com AS (SELECT *, 
+  							   salary + commission AS netpay
+  						  FROM employees_db
+  						 WHERE commission IS NOT NULL),
+	   emp_no_com AS (SELECT *
+	   					FROM employees_db
+	   				   WHERE commission IS NULL) 
+SELECT DISTINCT ewc.emp_name AS "Employee Name",
+	   ewc.salary AS "Salary",
+	   ewc.commission AS "Commission"
+  FROM emp_with_com AS ewc
+  JOIN emp_no_com AS enc
+    ON ewc.netpay > ANY(SELECT salary
+   						  FROM emp_no_com);
+	    						  
+/* Ex. 41. 
+   From the following table, write a SQL query to find those departments where the number of employees is equal 
+   to the number of characters in the department name. 
+   Return complete information about the employees.   
+   Sample table: employees
+   Sample table: department
+*/ 							   
+ 							   
+  WITH count_in_dep AS (SELECT dep_id, 
+  							   COUNT(*) AS cnt_emp
+  						  FROM employees_db
+  						 GROUP BY dep_id)			
+SELECT *,
+	   LENGTH(d.dep_name)	
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+  JOIN count_in_dep AS cid
+    ON e.dep_id = cid.dep_id
+ WHERE LENGTH(d.dep_name) = cid.cnt_emp;    							   
+
+    						 
+/* Ex. 42. 
+   From the following tables, write a SQL query to find those departments where the highest number of employees works. 
+   Return department name.   
+   Sample table: employees
+   Sample table: department
+*/ 
+
+-- 1
+  WITH cnt_emp AS (SELECT COUNT(*) AS cnt
+  					 FROM employees_db 
+  					GROUP BY dep_id)
+SELECT d.dep_name, 
+	   COUNT(*) 
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ GROUP BY d.dep_name
+HAVING COUNT(*) = (SELECT MAX(cnt) FROM cnt_emp);
+
+-- 2
+SELECT d.dep_name, 
+	   COUNT(*) 
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ GROUP BY d.dep_name
+HAVING COUNT(*) = (SELECT MAX(cnt) 
+				     FROM (SELECT COUNT(*) AS cnt 
+				    	     FROM employees_db 
+				    	    GROUP BY dep_id) AS cnt_emp);
+
+/* Ex. 43. 
+   From the following table, write a SQL query to find those employees who joined in the company on the same date. 
+   Return complete information about the employees.   
+   Sample table: employees
+*/ 
+    
+SELECT *
+  FROM employees_db AS e1
+  JOIN employees_db AS e2
+    ON e1.hire_date = e2.hire_date
+   AND e1.emp_id != e2.emp_id;
+			    	   
+/* Ex. 44. 
+   From the following table, write a SQL query to find those departments where more than average number of employees works. 
+   Return department name.   
+   Sample table: employees
+   Sample table: department
+*/  
+
+-- 1  				       
+SELECT d.dep_name, COUNT(*)
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ GROUP BY d.dep_name    
+HAVING COUNT(*) > ((SELECT COUNT(*) 
+					  FROM employees_db)/(SELECT COUNT(*) 
+					  						FROM department_db)); 
+
+-- 2
+  WITH emp_cnt_table AS (SELECT COUNT(*) AS emp_cnt 
+  					       FROM employees_db),	
+       dep_cnt_table AS (SELECT COUNT(*) AS dep_cnt
+       					   FROM department_db)  					       
+SELECT d.dep_name, COUNT(*)
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+ GROUP BY d.dep_name    
+HAVING COUNT(*) > ((SELECT emp_cnt
+					  FROM emp_cnt_table)/(SELECT dep_cnt
+					  				  	     FROM dep_cnt_table)); 
+				    	    	  
+/* Ex. 45. 
+   From the following table, write a SQL query to find those managers who handle maximum number of employees. 
+   Return managers name, number of employees.   
+   Sample table: employees
+*/
+
+-- 1
+SELECT m.emp_name AS "Manager",
+	   COUNT(*) AS "Num of employees"
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ GROUP BY m.emp_name
+HAVING COUNT(*) IN (SELECT MAX(cnt_emp) 
+					  FROM (SELECT COUNT(*) AS cnt_emp 
+							  FROM employees_db 
+							 GROUP BY manager_id) AS count_emp);
+
+-- 2
+  WITH max_emp AS (SELECT COUNT(*) AS cnt_emp 
+					 FROM employees_db 
+					GROUP BY manager_id)
+SELECT m.emp_name AS "Manager",
+	   COUNT(*) AS "Num of employees"
+  FROM employees_db AS e
+  JOIN employees_db AS m					
+    ON e.manager_id = m.emp_id
+ GROUP BY m.emp_name
+HAVING COUNT(*) IN (SELECT MAX(cnt_emp) FROM max_emp);
+
+-- 3
+WITH count_emp AS (SELECT m.emp_name AS "Manager",
+	   			          COUNT(*) AS "Num of employees",
+	                      DENSE_RANK () OVER (ORDER BY COUNT(*) DESC) AS dr_emp
+  					 FROM employees_db AS e
+  					 JOIN employees_db AS m					
+    			       ON e.manager_id = m.emp_id
+ 					GROUP BY m.emp_name)
+SELECT *
+  FROM count_emp
+ WHERE dr_emp = 1; 
+ 
+/* Ex. 46. 
+   From the following table, write a SQL query to find those managers who receive less salary then the employees work under them. 
+   Return complete information about the employees.  
+   Sample table: employees
+*/ 
+
+							
+					  				  	     
 SELECT *
   FROM employees_db
  LIMIT 20;		
@@ -12942,85 +13235,7 @@ SELECT *
   FROM department_db;
 
 SELECT *
-  FROM salary_grade_db; 
-/* Ex. 35. 
-   From the following table, write a SQL query to find those managers whose salary is more than the average salary 
-   of his employees. 
-   Return complete information about the employees.   
-   Sample table: employees
-*/ 
-
-/* Ex. 36. 
-   From the following table, write a SQL query to find those employees whose salary is less than the salary of 
-   his manager but more than the salary of any other manager. 
-   Return complete information about the employees.   
-   Sample table: employees
-*/ 
- 
-/* Ex. 37. 
-   From the following table, write a SQL query to compute department wise average salary of employees. 
-   Return employee name, average salary, department ID as "Current Salary".   
-   Sample table: employees
-*/ 
- 
-/* Ex. 38. 
-   From the following table, write a SQL query to find five lowest paid workers. Return complete 
-   information about the employees.   
-   Sample table: employees
-*/  
- 
-/* Ex. 39. 
-   From the following table, write a SQL query to find those managers who are not working under the PRESIDENT. 
-   Return complete information about the employees.   
-   Sample table: employees
-*/ 
-
-/* Ex. 40. 
-   From the following table, write a SQL query to find those employees whose net pay is more than any other 
-   employee receive. 
-   Return employee name, salary, and commission. 
-   Sample table: employees
-*/  
- 
-/* Ex. 41. 
-   From the following table, write a SQL query to find those departments where the number of employees is equal 
-   to the number of characters in the department name. 
-   Return complete information about the employees.   
-   Sample table: employees
-   Sample table: department
-*/ 
-
-/* Ex. 42. 
-   From the following tables, write a SQL query to find those departments where the highest number of employees works. 
-   Return department name.   
-   Sample table: employees
-   Sample table: department
-*/ 
- 
-/* Ex. 43. 
-   From the following table, write a SQL query to find those employees who joined in the company on the same date. 
-   Return complete information about the employees.   
-   Sample table: employees
-*/ 
- 
-/* Ex. 44. 
-   From the following table, write a SQL query to find those departments where more than average number of employees works. 
-   Return department name.   
-   Sample table: employees
-   Sample table: department
-*/  
-
-/* Ex. 45. 
-   From the following table, write a SQL query to find those managers who handle maximum number of employees. 
-   Return managers name, number of employees.   
-   Sample table: employees
-*/ 
-
-/* Ex. 46. 
-   From the following table, write a SQL query to find those managers who receive less salary then the employees work under them. 
-   Return complete information about the employees.  
-   Sample table: employees
-*/ 
+  FROM salary_grade_db;
  
 /* Ex. 47. 
    From the following table, write a SQL query to find those employees who are sub-ordinates of BLAZE. 
