@@ -18,8 +18,8 @@ def main():
     print(df1, "\n")
     print(df2, "\n")
     
-    df = pd.merge(df1, df2, on="key1")
-    print(df, "\n")
+    df3 = pd.merge(df1, df2, on="key1")
+    print(df3, "\n")
 
 
 if __name__ == "__main__":

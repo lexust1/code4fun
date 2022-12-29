@@ -18,7 +18,9 @@ def main():
     
     df3 = df1.join(df2)
     print(df3, "\n")
-
+    
+    df4 = pd.merge(df1, df2, left_index=True, right_index=True, how="left")
+    print(df4, "\n")
 
 if __name__ == "__main__":
     main()

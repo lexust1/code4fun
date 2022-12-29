@@ -19,6 +19,12 @@ def main():
     df3 = pd.merge(df1, df2, on=["key1", "key2"])
     print(df3, "\n")
     
+    df4 = (
+        df1.set_index(["key1", "key2"])
+            .join(df2.set_index(["key1", "key2"]), how="inner")
+    )
+    print(df4, "\n")
+    
 
 if __name__ == "__main__":
     main()

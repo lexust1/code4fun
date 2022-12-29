@@ -20,6 +20,30 @@ def main():
     df3 = pd.merge(df1, df2, on=["key1", "key2"], how="left")
     print(df3, "\n")
     
+    df31 = pd.merge(
+        df1.set_index(["key1", "key2"]),
+        df2.set_index(["key1", "key2"]),
+        left_on=["key1", "key2"],
+        right_on=["key1", "key2"],
+        how="left"
+    )
+    print(df31, "\n")
+    
+    df4 = df1.join(df2.set_index(["key1", "key2"]), on=["key1", "key2"])
+    print(df4, "\n")
+    
+    df5 = df1.set_index(["key1", "key2"]).join(df2.set_index(["key1", "key2"]))
+    print(df5, "\n")
+    
+    df6 = df1.set_index(
+        ["key1", "key2"]).join(df2.set_index(["key1", "key2"]), 
+                               on=["key1", "key2"]
+    )
+    print(df6, "\n")
+      
+    df7 = df1.join(df2, lsuffix="_df1", rsuffix="_df2", how = "left")
+    print(df7, "\n")  
+     
 
 if __name__ == "__main__":
     main()

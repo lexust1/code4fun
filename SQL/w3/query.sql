@@ -13225,42 +13225,89 @@ SELECT *
    Sample table: employees
 */ 
 
-							
-					  				  	     
-SELECT *
-  FROM employees_db
- LIMIT 20;		
-
-SELECT *
-  FROM department_db;
-
-SELECT *
-  FROM salary_grade_db;
- 
+SELECT DISTINCT m.*
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE e.salary > m.salary;
+  
 /* Ex. 47. 
    From the following table, write a SQL query to find those employees who are sub-ordinates of BLAZE. 
    Return complete information about the employees.   
    Sample table: employees
 */ 
  
+-- 1 
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE m.emp_name = 'BLAZE';   
+
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE manager_id = (SELECT emp_id
+ 					   FROM employees_db 
+ 					  WHERE emp_name = 'BLAZE'); 
+
 /* Ex. 48. 
    From the following table, write a SQL query to find those employees who work as managers. 
    Return complete information about the employees. Use co-related subquery.   
    Sample table: employees
 */  
- 
+-- 1 					 
+SELECT DISTINCT m.*
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id;
+   
+-- 2
+SELECT *
+  FROM employees_db
+ WHERE emp_id IN (SELECT manager_id
+ 					FROM employees_db); 
+ 					 
+					  				  	     					 
 /* Ex. 49. 
    From the following table, write a SQL query to list the name of the employees for their manager JONAS and the name of the manager of JONAS.   
    Sample table: employees
 */ 
-
+ 				
+SELECT e.emp_name AS "Employee name",
+	   m.emp_name AS "Jona name",
+	   mm.emp_name AS "Jonas manager name"
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+  JOIN employees_db AS mm
+    ON m.manager_id = mm.emp_id
+ WHERE m.emp_name = 'JONAS';
+ 								
 /* Ex. 50. 
    From the following table, write a SQL query to find those employees who receive minimum salary for a designation. 
    Sort the result-set in ascending order by salary. 
    Return complete information about the employees.   
    Sample table: employees
 */  
- 
+
+-- 1
+SELECT *
+  FROM (SELECT *, 
+  		       DENSE_RANK() OVER (PARTITION BY job_name ORDER BY salary) 
+  	      FROM employees_db) AS emp_rank
+ WHERE dense_rank = 1
+ ORDER BY salary; 
+
+-- 2
+  WITH emp_rank AS (SELECT *, 
+  		                   DENSE_RANK() OVER (PARTITION BY job_name ORDER BY salary) 
+  	                       FROM employees_db)
+SELECT *
+  FROM emp_rank 
+ WHERE dense_rank =1
+ ORDER BY salary;
+		 
 /* Ex. 51. 
    From the following table, write a SQL query to find those employees who receive maximum salary for a designation. 
    Sort the result-set in descending order by salary. 
@@ -13268,12 +13315,45 @@ SELECT *
    Sample table: employees
 */ 
 
+SELECT *
+  FROM (SELECT *, 
+  		       DENSE_RANK() OVER (PARTITION BY job_name ORDER BY salary DESC) 
+  	      FROM employees_db) AS emp_rank
+ WHERE dense_rank = 1
+ ORDER BY salary DESC; 
+
+-- 2
+  WITH emp_rank AS (SELECT *, 
+  		                   DENSE_RANK() OVER (PARTITION BY job_name ORDER BY salary DESC) 
+  	                       FROM employees_db)
+SELECT *
+  FROM emp_rank 
+ WHERE dense_rank =1
+ ORDER BY salary DESC;
+
 /* Ex. 52. 
    From the following table, write a SQL query to find recently hired employees of every department. 
    Sort the result-set in descending order by hire date. 
    Return complete information about the employees.   
    Sample table: employees
 */ 
+
+-- 1
+SELECT * 
+  FROM (SELECT *, 
+               DENSE_RANK() OVER (PARTITION BY dep_id ORDER BY hire_date DESC)
+  		  FROM employees_db) AS emp_rank
+ WHERE dense_rank = 1
+ ORDER BY hire_date DESC;
+
+-- 2
+  WITH emp_rank AS (SELECT *, 
+  		                   DENSE_RANK() OVER (PARTITION BY dep_id ORDER BY hire_date DESC) 
+  	                       FROM employees_db)
+SELECT *
+  FROM emp_rank 
+ WHERE dense_rank =1
+ ORDER BY hire_date DESC;
  
 /* Ex. 53. 
    From the following table, write a SQL query to find those employees who receive a salary higher than the average 
@@ -13283,11 +13363,30 @@ SELECT *
    Sample table: employees
 */ 
  
+  WITH avg_sal_dep AS (SELECT dep_id,
+  							  ROUND(AVG(salary), 2) AS avg_sal
+  						 FROM employees_db 
+  					    GROUP BY dep_id)
+SELECT e.emp_name AS "Employee Name",
+	   e.salary AS "Salary",
+	   e.dep_id AS "Department ID",
+	   asd.avg_sal AS "Avg department salary"
+  FROM employees_db AS e
+  JOIN avg_sal_dep AS asd
+    ON e.dep_id = asd.dep_id
+ WHERE e.salary > asd.avg_sal
+ ORDER BY e.dep_id;    
+
 /* Ex. 54. 
    From the following table, write a SQL query to find those employees who earn a commission and receive maximum salary. 
    Return complete information about the employees.  
    Sample table: employees
 */  
+SELECT * 
+  FROM employees_db
+ WHERE salary = (SELECT MAX(salary) 
+   				   FROM employees_db
+   				  WHERE commission IS NOT NULL);
 
 /* Ex. 55. 
    From the following table, write a SQL query to find those employees who do not work in the department 1001 but work in 
@@ -13296,27 +13395,125 @@ SELECT *
    Sample table: employees
 */ 
 
+-- 1   				 
+  WITH emp_not_1001 AS (SELECT * 
+  						  FROM employees_db
+  						 WHERE dep_id != 1001),
+  	   emp_in_3001 AS (SELECT *
+  	   					 FROM employees_db
+  	   					WHERE dep_id = 3001)
+SELECT DISTINCT e_1001.emp_name AS "Employee Name",
+       e_1001.job_name AS "Job Name",
+       e_1001.salary AS "Salary"
+  FROM emp_not_1001 AS e_1001
+  JOIN emp_in_3001 AS e_3001
+    ON e_1001.job_name = e_3001.job_name
+   AND e_1001.salary = e_3001.salary;   				 
+
+-- 2
+SELECT emp_name AS "Employee Name",
+       job_name AS "Job Name",
+       salary AS "Salary" 
+  FROM employees_db 
+ WHERE dep_id != 1001
+   AND job_name IN (SELECT job_name
+   					  FROM employees_db
+   					 WHERE dep_id = 3001)
+   AND salary IN (SELECT salary
+   					FROM employees_db
+   				   WHERE dep_id = 3001);
+     				 
 /* Ex. 56. 
    From the following table, write a SQL query to find those employees who get a commission percent and works as a SALESMAN 
    and earn maximum net salary. 
    Return department ID, name, designation, salary, and net salary (salary+ commission).  
    Sample table: employees
 */ 
- 
+-- 1
+SELECT dep_id AS "Department ID",
+	   emp_name AS "Employee Name",
+	   job_name AS "Job Name",
+	   (salary + commission) AS "Net Salary"
+  FROM employees_db
+ WHERE commission IS NOT NULL
+   AND job_name = 'SALESMAN'
+   AND salary + commission = (SELECT MAX(salary + commission) 
+   							    FROM employees_db
+   							   WHERE commission IS NOT NULL);
+
+-- 2
+  WITH emp_net_salary AS (SELECT MAX(salary + commission) AS max_salary
+   							FROM employees_db
+   						   WHERE commission IS NOT NULL) 
+SELECT dep_id AS "Department ID",
+	   emp_name AS "Employee Name",
+	   job_name AS "Job Name",
+	   (salary + commission) AS "Net Salary"
+  FROM employees_db, emp_net_salary
+ WHERE commission IS NOT NULL
+   AND job_name = 'SALESMAN'
+   AND salary + commission = max_salary;
+  
+-- 3
+  WITH emp_net_salary AS (SELECT MAX(salary + commission) AS max_salary
+   							FROM employees_db
+   						   WHERE commission IS NOT NULL) 
+SELECT dep_id AS "Department ID",
+	   emp_name AS "Employee Name",
+	   job_name AS "Job Name",
+	   (salary + commission) AS "Net Salary"
+  FROM employees_db
+ WHERE commission IS NOT NULL
+   AND job_name = 'SALESMAN'
+   AND salary + commission = (SELECT max_salary
+  							    FROM emp_net_salary);  
+  				     				  
 /* Ex. 57. 
    From the following table, write a SQL query to find those employees who gets a commission and earn the second highest 
    net salary (salary + commission). 
    Return department id, employee name, designation, salary, and net salary.   
    Sample table: employees
 */ 
- 
+
+SELECT dep_id AS "Department ID",
+	   emp_name AS "Employee Name",
+	   job_name AS "Job Name",
+	   salary AS "Salary",
+	   (commission + salary) AS "Net Salary"
+  FROM (SELECT *, 
+  		       DENSE_RANK() OVER (ORDER BY (commission + salary) DESC)
+  		  FROM employees_db
+  		 WHERE commission IS NOT NULL) AS net_salar_rank
+ WHERE dense_rank = 2; 		 
+
 /* Ex. 58. 
    From the following table, write a SQL query to find those departments where the average salary is less than the averages 
    for all departments. 
    Return department ID, average salary.   
    Sample table: employees
 */  
- 
+
+-- 1
+  WITH avg_sal_deps AS (SELECT dep_id, 
+  							   ROUND(AVG(salary), 2) AS avg_sal_dep
+  						  FROM employees_db
+  						 GROUP BY dep_id),
+       avg_sal AS (SELECT ROUND(AVG(salary), 2) AS avg_sal_t
+  				    FROM employees_db)  
+SELECT dep_id AS "Department ID",
+	   avg_sal_dep AS "Average Salary"
+  FROM avg_sal_deps
+ WHERE avg_sal_dep < (SELECT avg_sal_t 
+ 					    FROM avg_sal); 
+ 					   
+-- 2
+SELECT dep_id AS "Department ID",
+	   ROUND(AVG(salary), 2) AS "Average Salary"
+  FROM employees_db 
+ GROUP BY dep_id
+HAVING AVG(salary) < (SELECT AVG(salary) 
+						FROM employees_db); 
+
 /* Ex. 59. 
    From the following tables, write a SQL query to find the unique department of the employees. 
    Return complete information about the employees.   
@@ -13324,12 +13521,23 @@ SELECT *
    Sample table: department
 */ 
 
+SELECT *
+  FROM department_db 
+ WHERE dep_id IN (SELECT DISTINCT dep_id
+ 				    FROM employees_db); 
+ 
 /* Ex. 60. 
    From the following tables, write a SQL query to list the details of the employees working at PERTH.  
    Sample table: employees
    Sample table: department
 */  
- 
+ 				  
+SELECT *
+  FROM employees_db
+  JOIN department_db
+ USING (dep_id)
+ WHERE dep_location = 'PERTH';
+				   
 /* Ex. 61. 
    From the following tables, write a SQL query to list the employees of grade 2 or 3 and the department where he or she works, 
    is located in the city PERTH. 
@@ -13338,15 +13546,30 @@ SELECT *
    Sample table: department
    Sample table: salary_grade
 */ 
+SELECT *
+  FROM employees_db
+  JOIN department_db
+ USING (dep_id)
+  JOIN salary_grade_db
+    ON salary BETWEEN min_sal AND max_sal 
+ WHERE grade IN (2, 3)
+   AND dep_location = 'PERTH';
 
 /* Ex. 62. 
    From the following table, write a SQL query to find those employees whose designation is same as 
    the designation of ADELYN or the salary is more than the salary of WADE. 
    Return complete information about the employees.  
    Sample table: employees
-
-
 */ 
+ 
+SELECT *
+  FROM employees_db
+ WHERE job_name = (SELECT job_name 
+ 					 FROM employees_db
+ 					WHERE emp_name = 'ADELYN')
+    OR salary > (SELECT salary
+    			   FROM employees_db 
+    			  WHERE emp_name = 'WADE'); 					
  
 /* Ex. 63. 
    From the following table, write a SQL query to find those employees of department 1001 whose salary is more 
@@ -13354,14 +13577,48 @@ SELECT *
    Return complete information about the employees.   
    Sample table: employees
 */ 
- 
+
+SELECT *
+  FROM employees_db
+ WHERE dep_id = 1001
+   AND salary > (SELECT salary
+    			   FROM employees_db 
+    			  WHERE emp_name = 'ADELYN'); 					
+    			 
 /* Ex. 64. 
    From the following table, write a SQL query to find those managers who are senior to KAYLING and 
    who are junior to SANDRINE. 
    Return complete information about the employees.  
    Sample table: employees
 */  
-
+    			 
+-- It is an unclear quetion.
+    			 
+-- 1    			 
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.emp_id = m.emp_id
+ WHERE m.hire_date < (SELECT hire_date
+    			        FROM employees_db 
+    			       WHERE emp_name = 'KAYLING') 
+   AND m.hire_date > (SELECT hire_date
+    			        FROM employees_db 
+    			       WHERE emp_name = 'SANDRINE');      		
+    			      
+-- OR    			 
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.emp_id = m.emp_id
+ WHERE m.hire_date < (SELECT hire_date
+    			        FROM employees_db 
+    			       WHERE emp_name = 'KAYLING') 
+   AND m.hire_date > (SELECT hire_date
+    			        FROM employees_db 
+    			       WHERE emp_name = 'SANDRINE')
+   AND m.job_name = 'MANAGER';      			     
+    			      
 /* Ex. 65. 
    From the following tables, write a SQL query to find those employees who work in the department 
    where KAYLING works. 
@@ -13369,7 +13626,19 @@ SELECT *
    Sample table: employees
    Sample table: department
 */ 
+  
+SELECT emp_id AS "Employee ID",
+	   emp_name AS "Employee Name",
+	   dep_id AS "Department ID",
+	   salary AS "Salary"
+  FROM employees_db
+  JOIN department_db
+ USING (dep_id)
+ WHERE dep_id = (SELECT dep_id 
+                   FROM employees_db 
+                  WHERE emp_name = 'KAYLING');	 
 
+ 
 /* Ex. 66. 
    From the following tables, write a SQL query to find those employees whose salary grade is greater 
    than the grade of MARKER. 
@@ -13377,7 +13646,19 @@ SELECT *
    Sample table: employees
    Sample table: salary_grade
 */ 
- 
+                 
+  WITH emp_grade AS (SELECT sg.grade AS marker_grade
+  					   FROM employees_db AS e
+					   JOIN salary_grade_db AS sg
+    				     ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+    				  WHERE e.emp_name = 'MARKER')	
+SELECT * 
+  FROM employees_db AS e
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE grade > (SELECT marker_grade 
+ 				  FROM emp_grade);    
+             
 /* Ex. 67. 
    From the following tables, write a SQL query to find those employees whose grade same as the grade 
    of TUCKER or experience is more than SANDRINE and who are belonging to SYDNEY or PERTH. 
@@ -13386,13 +13667,41 @@ SELECT *
    Sample table: department
    Sample table: salary_grade
 */ 
- 
+ 				 
+WITH emp_grade AS (SELECT sg.grade AS tucker_grade
+  					 FROM employees_db AS e
+    				 JOIN salary_grade_db AS sg
+    				   ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+    				WHERE e.emp_name = 'TUCKER'),
+	 emp_exp AS (SELECT e.hire_date AS sandrine_exp
+  				   FROM employees_db AS e
+  				   JOIN department_db AS d
+    				 ON e.dep_id = d.dep_id
+    			  WHERE e.emp_name = 'SANDRINE')		  
+SELECT *
+  FROM employees_db AS e
+  JOIN department_db AS d
+    ON e.dep_id = d.dep_id
+  JOIN salary_grade_db AS sg
+    ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+ WHERE (sg.grade = (SELECT tucker_grade
+ 					  FROM emp_grade)
+    OR e.hire_date < (SELECT sandrine_exp
+    					FROM emp_exp))
+   AND d.dep_location IN ('SYDNEY', 'PERTH');    					
+       				 
 /* Ex. 68. 
    From the following tables, write a SQL query to find those employees whose salary is same as any one 
    of the employee. 
    Return complete information about the employees.   
    Sample table: employees
 */  
+
+SELECT * 
+  FROM employees_db  AS emp1
+  JOIN employees_db AS emp2
+    ON emp1.salary = emp2.salary
+ WHERE emp1.emp_id != emp2.emp_id;
  
 /* Ex. 69. 
    From the following tables, write a SQL query to find compute the total remuneration (salary + commission) 
@@ -13402,11 +13711,27 @@ SELECT *
    Sample table: department
 */ 
 
+SELECT *, 
+	   salary + commission AS "Renumeration"  
+  FROM employees_db 
+  JOIN department_db
+ USING (dep_id)
+ WHERE dep_name = 'MARKETING'
+   AND job_name = 'SALESMAN';
+
 /* Ex. 70. 
    From the following table, write a SQL query to find the recently hired employees of department 3001. 
    Return complete information about the employees.   
    Sample table: employees
 */  
+-- It is unclear what does "recently" mean. Use the last date.
+  
+SELECT *
+  FROM employees_db
+ WHERE dep_id = 3001
+   AND hire_date = (SELECT MAX(hire_date) 
+  					  FROM employees_db
+  					 WHERE dep_id = 3001); 
  
 /* Ex. 71. 
    From the following tables, write a SQL query to find the highest paid employees of PERTH who joined 
@@ -13416,13 +13741,40 @@ SELECT *
    Sample table: department
    Sample table: salary_grade
 */ 
+  
+  WITH loc_grade AS (SELECT *   
+  					   FROM employees_db AS e
+  					   JOIN department_db AS d
+					     ON e.dep_id = d.dep_id
+					   JOIN salary_grade_db AS sg
+					     ON e.salary BETWEEN sg.min_sal AND sg.max_sal
+					  WHERE d.dep_location = 'PERTH'
+					    AND sg.grade = 2)
+SELECT *
+  FROM loc_grade 
+ WHERE hire_date < (SELECT MAX(hire_date) 
+ 					  FROM loc_grade)
+   AND salary = (SELECT MAX(salary)
+   				   FROM loc_grade); 					 
+ 					
 
 /* Ex. 72. 
    From the following table, write a SQL query to find the highest paid employees work under KAYLING. 
    Return complete information about the employees.   
    Sample table: employees
 */ 
- 
+   				  
+SELECT *
+  FROM employees_db 
+ WHERE manager_id = (SELECT emp_id
+ 					   FROM employees_db
+ 					  WHERE emp_name = 'KAYLING')
+   AND salary = (SELECT MAX(salary)
+   				   FROM employees_db 
+   				  WHERE manager_id = (SELECT emp_id
+	   					   			    FROM employees_db
+ 					  				   WHERE emp_name = 'KAYLING')); 		
+ 					  				  				  				      				  
 /* Ex. 73. 
    From the following table, write a SQL query to find those employees whose net pay are higher 
    than or equal to the salary of any other employee in the company. 
@@ -13430,6 +13782,14 @@ SELECT *
    Sample table: employees
 */ 
  
+SELECT DISTINCT emp1.emp_name AS "Employee Name",
+	   emp1.salary AS "Salary",
+	   emp1.commission AS "Commission"
+  FROM employees_db AS emp1
+  JOIN employees_db AS emp2  
+    ON emp1.salary + emp1.commission >= ANY (SELECT salary FROM employees_db)
+ WHERE emp1.emp_id != emp2.emp_id; 	
+				  				  					  				  					  				  
 /* Ex. 74. 
    From the following table, write a SQL query to find those employees whose salaries are greater 
    than the salaries of their managers. 
@@ -13437,17 +13797,33 @@ SELECT *
    Sample table: employees
 */  
 
+SELECT *
+  FROM employees_db AS e
+  JOIN employees_db AS m
+    ON e.manager_id = m.emp_id
+ WHERE e.salary > m.salary; 
+    
 /* Ex. 75. 
    From the following table, write a SQL query to find the maximum average salary drawn for each job except for PRESIDENT.   
    Go to the editor
    Sample table: employees
 */ 
 
+WITH gr_sals AS (SELECT ROUND(AVG(salary), 2) AS avg_sals
+  					FROM employees_db
+				   WHERE job_name != 'PRESIDENT' 
+				   GROUP BY job_name)
+SELECT MAX(avg_sals)
+  FROM gr_sals; 
+
 /* Ex. 76. 
    From the following table, write a SQL query to count the number of employees who work as a manager. 
    Return number of employees.   
    Sample table: employees
 */ 
+ 
+SELECT COUNT(DISTINCT manager_id)
+  FROM employees_db; 
  
 /* Ex. 77. 
    From the following table, write a SQL query to find those departments where no employee works. 
@@ -13456,7 +13832,22 @@ SELECT *
    Sample table: department
 */ 
 
+SELECT dep_id
+  FROM employees_db
+  FULL OUTER JOIN department_db
+ USING (dep_id)
+ WHERE emp_id IS NULL;
+ 
 
+SELECT *
+  FROM employees_db
+ LIMIT 20;
+
+SELECT *
+  FROM department_db;
+
+SELECT *
+  FROM salary_grade_db; 
  
  
  
