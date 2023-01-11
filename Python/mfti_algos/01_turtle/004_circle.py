@@ -5,9 +5,11 @@ import turtle
 
 def main():
     turtle.shape("turtle")
-    for part in range(4):
-        turtle.forward(50)
-        turtle.left(90)
+    # Number of parts.
+    n = 100
+    for part in range(n):
+        turtle.forward(1000/n)
+        turtle.left(360/n)
     
 
 if __name__ == "__main__":
