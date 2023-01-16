@@ -16,8 +16,11 @@ def main():
     print(f"a: {datetime(2012, 1, 15)}\n")
     print(f"b: {datetime(2012, 1, 15, 21, 20)}\n")
     print(f"c: {datetime.now()}\n")
-    print(f"d: {datetime(2012, 1, 15)}\n")
-    
+    print(f"d: {datetime.date(datetime(2012, 1, 15))}\n")
+    print(f"e: {datetime.now().date()}\n")
+    print(f"f: {datetime.time(datetime(2012, 1, 15, 21, 20))}\n")
+    print(f"e: {datetime.now().time()}\n")
+       
     
 if __name__ == "__main__":
     main()
