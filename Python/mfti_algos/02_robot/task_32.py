@@ -20,7 +20,6 @@ def task_8_18():
                 while not wall_is_beneath():
                     move_down()
         move_right()
-    print(filled_cell_cnt)
     mov("ax", filled_cell_cnt)
 
 
