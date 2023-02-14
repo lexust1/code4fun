@@ -24,7 +24,7 @@
 
 sequence = []
 while True:
-    user_input = input("Enter a sequence value (or use Space + Enter to stop: ")
+    user_input = input("Enter a sequence value (or use Space + Enter to stop): ")
     if user_input == ' ':
         break
     sequence.append(int(user_input))
