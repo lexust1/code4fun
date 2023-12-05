@@ -23,10 +23,15 @@
 def bubble_sort(arr):
     """Does bubble sort."""
     for bypass in range(0, len(arr) - 1):
+        # Uncomment if you want to improve performance in a sorted arr.
+        # swapped = False
         for k in range(0, len(arr) - bypass - 1):
             if arr[k] > arr[k + 1]:
                 arr[k], arr[k + 1] = arr[k + 1], arr[k]
+                # swapped = True
             print(arr)
+        # if not swapped:
+        #     break
     return arr
 
 
