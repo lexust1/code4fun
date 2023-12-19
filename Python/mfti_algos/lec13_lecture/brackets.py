@@ -20,6 +20,7 @@ def is_brace_sequence_correct(s: str) -> bool:
           (либо ')' или ']')
           в правильном порядке.
     """
+    a_stack.clear()
     for brace in s:
         # Игнорировать символы, которые не являются скобками
         if brace not in "()[]":

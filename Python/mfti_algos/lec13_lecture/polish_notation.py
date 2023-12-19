@@ -14,6 +14,7 @@ def evaluate_rpn(expression):
     Returns:
         Результат вычисления выражения.
     """
+    a_stack.clear()
     for token in expression.split():
         # Проверяем, является ли токен числом
         if token.isnumeric():
