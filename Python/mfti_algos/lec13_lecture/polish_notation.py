@@ -18,7 +18,7 @@ def evaluate_rpn(expression):
     for token in expression.split():
         # Проверяем, является ли токен числом
         if token.isnumeric():
-            a_stack.push(int(token))
+            a_stack.push(float(token))
         # Выполняем операцию, если токен - оператор
         else:
             # Вытаскиваем из стека два числа (аккуратно с нумерацией
