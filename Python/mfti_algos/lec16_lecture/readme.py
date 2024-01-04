@@ -1,0 +1,1 @@
+# No algos, only simple patterns.
