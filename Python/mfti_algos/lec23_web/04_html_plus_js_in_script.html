@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Page Title</title>
+</head>
+<body>
+  <h1>This is a Heading</h1>
+  <p>This is a paragraph.</p>
+  <div onclick="toggle(this)">Click me</div>
+<script>
+var flag = true;
+function toggle(self) {
+    if (flag) {
+        self.style.color = 'red';
+        self.innerText = 'Red';
+    } else {
+        self.style.color = 'green';
+        self.innerText = 'Green';
+    }
+    flag = !flag;
+}
+</script>
+</body>
+</html>

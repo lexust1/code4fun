@@ -1,0 +1,10 @@
+.one {
+    color: red;
+    font-weight: bold;
+    border: 1px solid black;
+}
+.two {
+    color: green;
+    font-style: italic;
+    border: 3px dashed red;
+}
