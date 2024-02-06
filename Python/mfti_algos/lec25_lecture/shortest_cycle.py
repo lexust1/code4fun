@@ -102,11 +102,11 @@ def find_shortest_cycle(graph):
         # Поиск цикла с помощью BFS
         candidate = bfs(graph, vertex)
         # Если цикл не найден и это первая итерация
-        if candidate is False and cycle == []:
+        if not candidate and cycle == []:
             cycle = "No cycles"
             # print(f"No cycle when we start from vertex {vertex}")
         # Если цикл не найден, пропускаем итерацию
-        elif candidate is False:
+        elif not candidate:
             continue
         # Если найден цикл, реконструируем его
         else:
