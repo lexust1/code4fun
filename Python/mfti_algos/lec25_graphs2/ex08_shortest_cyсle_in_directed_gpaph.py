@@ -207,18 +207,18 @@ def reconstruct_cycle(predecessors, end1, end2):
 
 def main():
     # print(create_adj_list())
-    graph = create_adj_list()
-    print(graph)
-    # graph = {
-    #     '0': set(),
-    #     '1': {'6', '2'},
-    #     '2': set(),
-    #     '3': {'1'},
-    #     '4': {'7'},
-    #     '5': {'2'},
-    #     '6': {'4', '7'},
-    #     '7': {'3'}
-    # }
+    # graph = create_adj_list()
+    # print(graph)
+    graph = {
+        '0': set(),
+        '1': {'6', '2'},
+        '2': set(),
+        '3': {'1'},
+        '4': {'7'},
+        '5': {'2'},
+        '6': {'4', '7'},
+        '7': {'3'}
+    }
     print(find_shortest_cycle(graph))
 
 

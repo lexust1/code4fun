@@ -101,7 +101,7 @@ def find_vertices(graph, end1, end2):
     if dist_end1[end2] == float('inf'):
         # Путь не существует
         return []
-    # Инициализируем лист под хранение ребер на кратчайших путях.
+    # Инициализируем лист под хранение вершин на кратчайших путях.
     vertices_on_paths = []
     # Перебираем все вершины
     for vertex in graph:
@@ -109,7 +109,7 @@ def find_vertices(graph, end1, end2):
         # кратчайшего пути.
         if dist_end1[vertex] + dist_end2[vertex] == dist_end1[end2]:
             vertices_on_paths.append(vertex)
-    # Возвращаем все ребра на кратчайших путях между вершинами.
+    # Возвращаем все вершины на кратчайших путях между вершинами.
     return vertices_on_paths
 
 
